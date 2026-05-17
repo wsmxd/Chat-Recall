@@ -1,18 +1,25 @@
 import { defaultCharacters } from "@/config/default-characters";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { parseCharacterCard, type CharacterSummary } from "@/lib/characters/schema";
+import { parseCharacterCard, type CharacterSummary, type CharacterVisibility } from "@/lib/characters/schema";
 
-async function listCharactersFromSupabase(): Promise<CharacterSummary[] | null> {
+async function listCharactersFromSupabase(visibilityFilter?: CharacterVisibility[], ownerId?: string): Promise<CharacterSummary[] | null> {
   try {
     const supabase = await createSupabaseServerClient();
     if (!supabase) return null;
 
-    const { data, error } = await supabase
+    let query = supabase
       .from("characters")
       .select("*")
-      .in("visibility", ["public", "official"])
       .order("created_at", { ascending: false });
 
+    if (visibilityFilter) {
+      query = query.in("visibility", visibilityFilter);
+    }
+    if (ownerId) {
+      query = query.eq("owner_id", ownerId);
+    }
+
+    const { data, error } = await query;
     if (error || !data) return null;
 
     return data.map((row) => {
@@ -22,7 +29,7 @@ async function listCharactersFromSupabase(): Promise<CharacterSummary[] | null> 
         slug: row.slug,
         name: row.name,
         subtitle: row.subtitle ?? undefined,
-        visibility: row.visibility as CharacterSummary["visibility"],
+        visibility: row.visibility as CharacterVisibility,
         card
       };
     });
@@ -31,18 +38,21 @@ async function listCharactersFromSupabase(): Promise<CharacterSummary[] | null> 
   }
 }
 
-async function getCharacterFromSupabase(slug: string): Promise<CharacterSummary | null> {
+async function getCharacterFromSupabase(slug: string, visibilityFilter?: CharacterVisibility[]): Promise<CharacterSummary | null> {
   try {
     const supabase = await createSupabaseServerClient();
     if (!supabase) return null;
 
-    const { data, error } = await supabase
+    let query = supabase
       .from("characters")
       .select("*")
-      .eq("slug", slug)
-      .in("visibility", ["public", "official"])
-      .maybeSingle();
+      .eq("slug", slug);
 
+    if (visibilityFilter) {
+      query = query.in("visibility", visibilityFilter);
+    }
+
+    const { data, error } = await query.maybeSingle();
     if (error || !data) return null;
 
     const card = parseCharacterCard(data.definition);
@@ -51,7 +61,7 @@ async function getCharacterFromSupabase(slug: string): Promise<CharacterSummary 
       slug: data.slug,
       name: data.name,
       subtitle: data.subtitle ?? undefined,
-      visibility: data.visibility as CharacterSummary["visibility"],
+      visibility: data.visibility as CharacterVisibility,
       card
     };
   } catch {
@@ -60,15 +70,25 @@ async function getCharacterFromSupabase(slug: string): Promise<CharacterSummary 
 }
 
 export async function listPublicCharacters() {
-  const fromSupabase = await listCharactersFromSupabase();
+  const fromSupabase = await listCharactersFromSupabase(["public", "official"]);
   if (fromSupabase && fromSupabase.length > 0) return fromSupabase;
   return defaultCharacters;
 }
 
 export async function getPublicCharacterBySlug(slug: string) {
-  const fromSupabase = await getCharacterFromSupabase(slug);
+  const fromSupabase = await getCharacterFromSupabase(slug, ["public", "official"]);
   if (fromSupabase) return fromSupabase;
   return defaultCharacters.find((character) => character.slug === slug) ?? null;
+}
+
+export async function getCharacterBySlug(slug: string, userId?: string) {
+  if (userId) {
+    const fromSupabase = await getCharacterFromSupabase(slug);
+    if (fromSupabase && (fromSupabase.visibility !== "private" || fromSupabase.card.metadata?.source === "forked")) {
+      return fromSupabase;
+    }
+  }
+  return getPublicCharacterBySlug(slug);
 }
 
 export async function getSupabaseCharacterIdBySlug(slug: string): Promise<string | null> {

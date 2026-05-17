@@ -2,6 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AppShell } from "@/components/app-shell";
 import { getPublicCharacterBySlug, listPublicCharacters } from "@/lib/characters/queries";
+import { getSession } from "@/lib/auth/server";
+import { CharacterActions } from "@/components/character-actions";
 
 type CharacterPageProps = {
   params: Promise<{
@@ -19,6 +21,7 @@ export async function generateStaticParams() {
 
 export default async function CharacterPage({ params }: CharacterPageProps) {
   const { slug } = await params;
+  const { user } = await getSession();
   const character = await getPublicCharacterBySlug(slug);
 
   if (!character) {
@@ -86,6 +89,23 @@ export default async function CharacterPage({ params }: CharacterPageProps) {
               </div>
             </dl>
           </article>
+          {card.theme?.defaultThemeId && (
+            <article className="card">
+              <h2>Theme</h2>
+              <dl className="detail-list">
+                <div>
+                  <dt>Default</dt>
+                  <dd>{card.theme.defaultThemeId}</dd>
+                </div>
+                {card.theme.moodVariants.length > 0 && (
+                  <div>
+                    <dt>Mood Variants</dt>
+                    <dd>{card.theme.moodVariants.join(", ")}</dd>
+                  </div>
+                )}
+              </dl>
+            </article>
+          )}
         </section>
         <div className="button-row" style={{ marginTop: "24px" }}>
           <Link className="button secondary" href="/characters">
@@ -94,8 +114,14 @@ export default async function CharacterPage({ params }: CharacterPageProps) {
           <Link className="button" href={`/chat/${character.slug}`}>
             Start chat
           </Link>
+          {user && (
+            <span className="button secondary" data-action="fork" data-slug={character.slug}>
+              Fork
+            </span>
+          )}
         </div>
       </main>
+      <CharacterActions />
     </AppShell>
   );
 }
