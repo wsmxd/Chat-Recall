@@ -3,15 +3,17 @@ import type {
   EmbeddingOptions,
   EmbeddingResult
 } from "@/lib/rag/embeddings/types";
+import { getServerEnvOrNull } from "@/lib/env";
 
 const BASE_URL = "https://dashscope.aliyuncs.com/compatible-mode/v1";
 const DEFAULT_MODEL = "tongyi-embedding-vision-flash-2026-03-06";
 const DEFAULT_DIMENSIONS = 768;
 
 export function createTongyiEmbeddingProvider(): EmbeddingProvider {
-  const apiKey = process.env.DASHSCOPE_API_KEY;
-  const model = process.env.EMBEDDING_MODEL || DEFAULT_MODEL;
-  const dimensions = parseInt(process.env.EMBEDDING_DIMENSIONS || String(DEFAULT_DIMENSIONS), 10);
+  const env = getServerEnvOrNull();
+  const apiKey = env?.DASHSCOPE_API_KEY;
+  const model = env?.EMBEDDING_MODEL || DEFAULT_MODEL;
+  const dimensions = parseInt(env?.EMBEDDING_DIMENSIONS || String(DEFAULT_DIMENSIONS), 10);
 
   return {
     id: "tongyi",

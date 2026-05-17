@@ -28,7 +28,10 @@ function splitRecursive(text: string, separators: string[]): string[] {
 }
 
 function estimateTokens(text: string): number {
-  return Math.ceil(text.length / 2);
+  // CJK characters are ~1 token each, Latin ~0.5-1 token per character
+  const cjkCount = (text.match(/[\u4e00-\u9fff\u3400-\u4dbf\uf900-\ufaff\u3040-\u309f\u30a0-\u30ff\uac00-\ud7af]/g) || []).length;
+  const otherCount = text.length - cjkCount;
+  return Math.ceil(cjkCount + otherCount / 2);
 }
 
 export function chunkText(

@@ -1,12 +1,6 @@
 import type { CharacterSummary } from "@/lib/characters/schema";
 import type { LLMMessage } from "@/lib/llm/types";
-
-export interface LoreChunk {
-  chunkId: string;
-  content: string;
-  similarity: number;
-  metadata?: Record<string, unknown>;
-}
+import type { LoreChunk } from "@/lib/rag/types";
 
 export interface ChatMessage {
   id: string;
@@ -82,11 +76,6 @@ function buildSystemPrompt(character: CharacterSummary): string {
   return parts.join("\n");
 }
 
-function formatMessage(role: string, name: string | undefined, content: string): string {
-  if (role === "system") return content;
-  return content;
-}
-
 export function buildChatPrompt(params: {
   character: CharacterSummary;
   messages: ChatMessage[];
@@ -120,7 +109,7 @@ export function buildChatPrompt(params: {
 
   const recentMessages = messages.slice(-20).map((m) => ({
     role: m.role as LLMMessage["role"],
-    content: formatMessage(m.role, character.name, m.content)
+    content: m.content
   }));
 
   llmMessages.push(...recentMessages);

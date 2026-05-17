@@ -1,5 +1,6 @@
 import { getPublicCharacterBySlug, getSupabaseCharacterIdBySlug } from "@/lib/characters/queries";
-import { buildChatPrompt, type LoreChunk } from "@/lib/chat/prompt-builder";
+import { buildChatPrompt } from "@/lib/chat/prompt-builder";
+import type { LoreChunk } from "@/lib/rag/types";
 import { createConversation, saveMessage } from "@/lib/chat/conversations";
 import { createDeepSeekProvider } from "@/lib/llm/providers/deepseek";
 import { retrieveRelevantChunks } from "@/lib/rag/retrievers/vector-retriever";
@@ -142,7 +143,8 @@ export async function POST(request: Request) {
                     conversationId: activeConversationId,
                     role: "assistant",
                     characterId,
-                    content: assistantContent
+                    content: assistantContent,
+                    metadata: citations.length > 0 ? { citations } as unknown as import("@/types/database.types").Json : undefined
                   });
                 }
               }

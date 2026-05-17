@@ -1,15 +1,7 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createTongyiEmbeddingProvider } from "@/lib/rag/embeddings/tongyi";
 import type { Json } from "@/types/database.types";
-
-export interface RetrievalResult {
-  chunkId: string;
-  documentId: string;
-  lorePackId: string;
-  content: string;
-  metadata: Record<string, unknown>;
-  similarity: number;
-}
+import type { LoreChunk } from "@/lib/rag/types";
 
 export interface RetrieveParams {
   query: string;
@@ -22,7 +14,7 @@ export interface RetrieveParams {
 
 export async function retrieveRelevantChunks(
   params: RetrieveParams
-): Promise<RetrievalResult[]> {
+): Promise<LoreChunk[]> {
   const supabase = await createSupabaseServerClient();
   if (!supabase) return [];
 
