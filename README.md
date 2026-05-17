@@ -10,7 +10,7 @@ The initial stack is:
 - DeepSeek as the default LLM provider
 - Provider adapters for future model expansion
 
-This repository currently contains planning and project documentation only. No product implementation has been added yet.
+This repository currently contains the initial Next.js scaffold, Supabase migrations, and planning documentation. Product implementation will proceed in thin vertical slices.
 
 ## Product Direction
 
@@ -37,6 +37,7 @@ Core ideas:
 - [Character Cards](./docs/CHARACTER_CARDS.md)
 - [Theme System](./docs/THEME_SYSTEM.md)
 - [Creative Ideas](./docs/CREATIVE_IDEAS.md)
+- [Implementation Plan](./docs/IMPLEMENTATION_PLAN.md)
 - [Environment and Deployment](./docs/ENVIRONMENT_AND_DEPLOYMENT.md)
 - [Open Source Decisions](./docs/OPEN_SOURCE_DECISIONS.md)
 - [Supabase GitHub Integration](./docs/SUPABASE_GITHUB_INTEGRATION.md)

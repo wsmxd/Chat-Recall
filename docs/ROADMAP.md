@@ -9,14 +9,16 @@
 - Draft theme pack schema
 - Draft provider adapter interface
 - Draft RAG strategy
+- Initialize Next.js scaffold
+- Create Supabase project and apply initial migrations
 
 ## Phase 1: Foundation
 
-- Initialize Next.js project
-- Configure TypeScript, linting, formatting, and tests
-- Configure Supabase project structure
-- Add environment variable documentation
-- Add basic app shell
+- Add typed environment validation
+- Add Supabase browser/server/admin clients
+- Generate database types
+- Add CI checks
+- Add app navigation shell
 - Add provider abstraction with DeepSeek adapter
 - Add independent embedding provider abstraction
 
