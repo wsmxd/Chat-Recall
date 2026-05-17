@@ -71,3 +71,20 @@ export async function getPublicCharacterBySlug(slug: string) {
   return defaultCharacters.find((character) => character.slug === slug) ?? null;
 }
 
+export async function getSupabaseCharacterIdBySlug(slug: string): Promise<string | null> {
+  try {
+    const supabase = await createSupabaseServerClient();
+    if (!supabase) return null;
+
+    const { data } = await supabase
+      .from("characters")
+      .select("id")
+      .eq("slug", slug)
+      .maybeSingle();
+
+    return data?.id ?? null;
+  } catch {
+    return null;
+  }
+}
+

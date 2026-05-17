@@ -9,26 +9,30 @@ export interface ChatStreamEvent {
     outputTokens?: number;
     totalTokens?: number;
   };
+  conversationId?: string;
+  userMessageId?: string;
+  assistantMessageId?: string;
 }
 
 export interface ChatStreamOptions {
   characterSlug: string;
   messages: ChatMessage[];
+  conversationId?: string;
   model?: string;
   onToken: (token: string) => void;
   onError: (error: string) => void;
-  onDone: (usage?: ChatStreamEvent["usage"]) => void;
+  onDone: (result: { usage?: ChatStreamEvent["usage"]; conversationId?: string }) => void;
   signal?: AbortSignal;
 }
 
 export async function streamChat(options: ChatStreamOptions): Promise<void> {
-  const { characterSlug, messages, model, onToken, onError, onDone, signal } = options;
+  const { characterSlug, messages, conversationId, model, onToken, onError, onDone, signal } = options;
 
   try {
     const response = await fetch("/api/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ characterSlug, messages, model }),
+      body: JSON.stringify({ characterSlug, messages, conversationId, model }),
       signal
     });
 
@@ -68,7 +72,10 @@ export async function streamChat(options: ChatStreamOptions): Promise<void> {
             } else if (event.type === "error") {
               onError(event.error ?? "Unknown error");
             } else if (event.type === "done") {
-              onDone(event.usage);
+              onDone({
+                usage: event.usage,
+                conversationId: event.conversationId
+              });
             }
           } catch {
             // skip malformed SSE data

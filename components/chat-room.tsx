@@ -1,9 +1,11 @@
 "use client";
 
 import { useRef, useState, useCallback, useEffect, startTransition } from "react";
+import Link from "next/link";
 import type { CharacterSummary } from "@/lib/characters/schema";
 import { streamChat } from "@/lib/chat/client";
 import { buildGreetingMessage, type ChatMessage } from "@/lib/chat/prompt-builder";
+import { useAuth } from "@/components/auth-provider";
 
 function createId() {
   return crypto.randomUUID?.() ?? Math.random().toString(36).slice(2);
@@ -39,12 +41,31 @@ function makeGreeting(character: CharacterSummary): ChatMessage {
   };
 }
 
-export function ChatRoom({ character }: { character: CharacterSummary }) {
+export function ChatRoom({
+  character,
+  initialConversationId,
+  initialMessages
+}: {
+  character: CharacterSummary;
+  initialConversationId?: string;
+  initialMessages?: ChatMessage[];
+}) {
+  const { user } = useAuth();
   const loadedRef = useRef(false);
   const [hydrated, setHydrated] = useState(false);
-  const [messages, setMessages] = useState<ChatMessage[]>([makeGreeting(character)]);
+  const [messages, setMessages] = useState<ChatMessage[]>(
+    () => initialMessages ?? [makeGreeting(character)]
+  );
+  const [conversationId, setConversationId] = useState<string | undefined>(
+    initialConversationId
+  );
 
   useEffect(() => {
+    if (initialMessages) {
+      loadedRef.current = true;
+      startTransition(() => setHydrated(true));
+      return;
+    }
     const saved = loadMessages(character.slug);
     loadedRef.current = true;
     startTransition(() => {
@@ -53,7 +74,7 @@ export function ChatRoom({ character }: { character: CharacterSummary }) {
         setMessages(saved);
       }
     });
-  }, [character.slug]);
+  }, [character.slug, initialMessages]);
 
   const [input, setInput] = useState("");
   const [streaming, setStreaming] = useState(false);
@@ -100,6 +121,7 @@ export function ChatRoom({ character }: { character: CharacterSummary }) {
       await streamChat({
         characterSlug: character.slug,
         messages: updatedMessages,
+        conversationId,
         onToken: (token) => {
           assistantMsgRef.current += token;
           setMessages((prev) => {
@@ -131,7 +153,10 @@ export function ChatRoom({ character }: { character: CharacterSummary }) {
             return prev;
           });
         },
-        onDone: () => {
+        onDone: (result) => {
+          if (result.conversationId) {
+            setConversationId(result.conversationId);
+          }
           setMessages((prev) =>
             prev.map((m) =>
               m.id === "streaming"
@@ -147,7 +172,7 @@ export function ChatRoom({ character }: { character: CharacterSummary }) {
       setStreaming(false);
       inputRef.current?.focus();
     },
-    [input, messages, streaming, character.slug]
+    [input, messages, streaming, character.slug, conversationId]
   );
 
   const handleCancel = useCallback(() => {
@@ -165,10 +190,11 @@ export function ChatRoom({ character }: { character: CharacterSummary }) {
 
   const handleClear = useCallback(() => {
     if (streaming) return;
+    setConversationId(undefined);
     setMessages([
       {
         id: createId(),
-        role: "assistant",
+        role: "assistant" as const,
         content: buildGreetingMessage(character),
         createdAt: new Date().toISOString()
       }
@@ -191,6 +217,9 @@ export function ChatRoom({ character }: { character: CharacterSummary }) {
       <header className="chat-room-header">
         <h2>{character.name}</h2>
         {character.subtitle && <p>{character.subtitle}</p>}
+        {user && conversationId && (
+          <p className="chat-persisted">Saved — <Link href="/conversations">view all</Link></p>
+        )}
       </header>
 
       <div className="chat-messages" role="log" aria-live="polite">
