@@ -1,6 +1,13 @@
 import type { CharacterSummary } from "@/lib/characters/schema";
 import type { LLMMessage } from "@/lib/llm/types";
 
+export interface LoreChunk {
+  chunkId: string;
+  content: string;
+  similarity: number;
+  metadata?: Record<string, unknown>;
+}
+
 export interface ChatMessage {
   id: string;
   role: "user" | "assistant" | "system";
@@ -84,14 +91,31 @@ export function buildChatPrompt(params: {
   character: CharacterSummary;
   messages: ChatMessage[];
   systemInstructions?: string[];
+  loreContext?: LoreChunk[];
 }): LLMMessage[] {
-  const { character, messages, systemInstructions } = params;
+  const { character, messages, systemInstructions, loreContext } = params;
 
   const systemContent = buildSystemPrompt(character);
-  const extras = systemInstructions?.length ? "\n\n" + systemInstructions.join("\n") : "";
+  const extras: string[] = [];
+
+  if (systemInstructions?.length) {
+    extras.push(...systemInstructions);
+  }
+
+  if (loreContext && loreContext.length > 0) {
+    const loreSection = loreContext
+      .map((chunk, i) => {
+        const source = chunk.metadata?.source_type ?? "lore";
+        const title = chunk.metadata?.title ?? "";
+        return `[${i + 1}] (score: ${chunk.similarity.toFixed(3)}, source: ${source}${title ? `, title: ${title}` : ""}) ${chunk.content}`;
+      })
+      .join("\n\n");
+
+    extras.push(`Retrieved Lore:\n${loreSection}`);
+  }
 
   const llmMessages: LLMMessage[] = [
-    { role: "system", content: systemContent + extras }
+    { role: "system", content: systemContent + (extras.length > 0 ? "\n\n" + extras.join("\n\n") : "") }
   ];
 
   const recentMessages = messages.slice(-20).map((m) => ({

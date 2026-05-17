@@ -11,8 +11,10 @@ const serverEnvSchema = publicEnvSchema.extend({
   DEEPSEEK_BASE_URL: z.url().default("https://api.deepseek.com"),
   DEFAULT_LLM_PROVIDER: z.string().default("deepseek"),
   DEFAULT_LLM_MODEL: z.string().default("deepseek-chat"),
-  EMBEDDING_PROVIDER: z.string().optional(),
-  EMBEDDING_MODEL: z.string().optional(),
+  DASHSCOPE_API_KEY: z.string().min(1).optional(),
+  EMBEDDING_PROVIDER: z.string().default("tongyi"),
+  EMBEDDING_MODEL: z.string().default("tongyi-embedding-vision-flash-2026-03-06"),
+  EMBEDDING_DIMENSIONS: z.string().default("768"),
   EMBEDDING_API_KEY: z.string().optional(),
   APP_URL: z.url().default("http://localhost:3000")
 });
@@ -60,8 +62,9 @@ export function getEnvironmentStatus() {
     supabaseAnonKey: Boolean(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY),
     supabaseServiceRoleKey: Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY),
     deepseekApiKey: Boolean(process.env.DEEPSEEK_API_KEY),
-    embeddingProvider: Boolean(process.env.EMBEDDING_PROVIDER),
-    embeddingModel: Boolean(process.env.EMBEDDING_MODEL)
+    dashscopeApiKey: Boolean(process.env.DASHSCOPE_API_KEY),
+    embeddingProvider: process.env.EMBEDDING_PROVIDER || "tongyi",
+    embeddingModel: process.env.EMBEDDING_MODEL || "tongyi-embedding-vision-flash-2026-03-06"
   };
 }
 

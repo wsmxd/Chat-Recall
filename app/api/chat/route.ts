@@ -1,7 +1,8 @@
 import { getPublicCharacterBySlug, getSupabaseCharacterIdBySlug } from "@/lib/characters/queries";
-import { buildChatPrompt } from "@/lib/chat/prompt-builder";
+import { buildChatPrompt, type LoreChunk } from "@/lib/chat/prompt-builder";
 import { createConversation, saveMessage } from "@/lib/chat/conversations";
 import { createDeepSeekProvider } from "@/lib/llm/providers/deepseek";
+import { retrieveRelevantChunks } from "@/lib/rag/retrievers/vector-retriever";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { ensureProfile } from "@/lib/auth/server";
 import { z } from "zod";
@@ -82,13 +83,37 @@ export async function POST(request: Request) {
       }
     }
 
+    // RAG retrieval: find relevant lore chunks
+    let loreContext: LoreChunk[] = [];
+    const defaultLorePackIds = character.card.knowledge?.defaultLorePackIds;
+    if (defaultLorePackIds && defaultLorePackIds.length > 0) {
+      const latestUserMsg = [...messages].reverse().find((m) => m.role === "user");
+      if (latestUserMsg) {
+        try {
+          loreContext = await retrieveRelevantChunks({
+            query: latestUserMsg.content,
+            lorePackIds: defaultLorePackIds
+          });
+        } catch {
+          // RAG is best-effort, don't fail chat on retrieval errors
+        }
+      }
+    }
+
     const llmMessages = buildChatPrompt({
       character,
-      messages
+      messages,
+      loreContext: loreContext.length > 0 ? loreContext : undefined
     });
 
     const provider = createDeepSeekProvider();
     let assistantContent = "";
+    const citations = loreContext.map((chunk) => ({
+      chunkId: chunk.chunkId,
+      content: chunk.content.slice(0, 200),
+      similarity: chunk.similarity,
+      source: chunk.metadata?.source_type ?? "lore"
+    }));
 
     const encoder = new TextEncoder();
     const stream = new ReadableStream({
@@ -129,7 +154,8 @@ export async function POST(request: Request) {
                     usage: event.response?.usage,
                     conversationId: activeConversationId,
                     userMessageId: userMsgId,
-                    assistantMessageId: assistantMsgId
+                    assistantMessageId: assistantMsgId,
+                    citations: citations.length > 0 ? citations : undefined
                   })}\n\n`
                 )
               );

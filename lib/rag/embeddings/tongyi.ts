@@ -1,0 +1,66 @@
+import type {
+  EmbeddingProvider,
+  EmbeddingOptions,
+  EmbeddingResult
+} from "@/lib/rag/embeddings/types";
+
+const BASE_URL = "https://dashscope.aliyuncs.com/compatible-mode/v1";
+const DEFAULT_MODEL = "tongyi-embedding-vision-flash-2026-03-06";
+const DEFAULT_DIMENSIONS = 768;
+
+export function createTongyiEmbeddingProvider(): EmbeddingProvider {
+  const apiKey = process.env.DASHSCOPE_API_KEY;
+  const model = process.env.EMBEDDING_MODEL || DEFAULT_MODEL;
+  const dimensions = parseInt(process.env.EMBEDDING_DIMENSIONS || String(DEFAULT_DIMENSIONS), 10);
+
+  return {
+    id: "tongyi",
+    displayName: "Tongyi Embedding",
+    dimensions,
+    model,
+
+    async embed(options: EmbeddingOptions): Promise<EmbeddingResult> {
+      if (!apiKey) {
+        throw new Error("DASHSCOPE_API_KEY is not configured.");
+      }
+
+      const batchSize = 100;
+      const allEmbeddings: number[][] = [];
+
+      for (let i = 0; i < options.input.length; i += batchSize) {
+        const batch = options.input.slice(i, i + batchSize);
+
+        const response = await fetch(`${BASE_URL}/embeddings`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${apiKey}`
+          },
+          body: JSON.stringify({
+            model: options.model || model,
+            input: batch,
+            dimensions: options.dimensions || dimensions
+          })
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`DashScope embedding error ${response.status}: ${errorText}`);
+        }
+
+        const data = await response.json();
+
+        if (data.data) {
+          allEmbeddings.push(...data.data.map((d: { embedding: number[] }) => d.embedding));
+        }
+      }
+
+      return {
+        embeddings: allEmbeddings,
+        model: options.model || model,
+        provider: "tongyi",
+        dimensions: options.dimensions || dimensions
+      };
+    }
+  };
+}
