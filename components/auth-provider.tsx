@@ -2,7 +2,6 @@
 
 import { createContext, useContext, useState, useEffect, startTransition, type ReactNode } from "react";
 import { createBrowserClient } from "@supabase/ssr";
-import { getPublicEnvOrNull } from "@/lib/env";
 import type { User } from "@supabase/supabase-js";
 import type { Database } from "@/types/database.types";
 
@@ -17,12 +16,10 @@ interface AuthState {
 const AuthContext = createContext<AuthState | null>(null);
 
 function createClient() {
-  const env = getPublicEnvOrNull();
-  if (!env) return null;
-  return createBrowserClient<Database>(
-    env.NEXT_PUBLIC_SUPABASE_URL,
-    env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-  );
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !key) return null;
+  return createBrowserClient<Database>(url, key);
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
