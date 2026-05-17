@@ -14,6 +14,13 @@ Already completed:
 - `match_document_chunks` retrieval RPC
 - Seeded default theme
 - Planning docs for product, architecture, data model, permissions, providers, RAG, themes, and GitHub integration
+- Supabase TypeScript database types generated from the linked project
+- Environment validation helpers
+- Supabase browser, server, and admin client factories
+- CI workflow for typecheck, lint, and build
+- Read-only app shell with character gallery and character detail page
+- Character card schema validation and first structured local fixture
+- Health route exposing service and environment readiness
 
 ## Implementation Strategy
 
@@ -200,15 +207,15 @@ Acceptance criteria:
 
 ## Immediate Next Sprint
 
-The next sprint should focus on the foundation needed by every later feature:
+The first foundation slice has been started. Remaining next-sprint work should focus on replacing local fixtures with Supabase-backed reads and preparing chat provider integration:
 
-1. Add environment validation.
-2. Add Supabase server/browser clients.
-3. Generate database types.
-4. Add basic app layout/navigation.
-5. Add character card schema validation.
-6. Add first local structured character fixture.
-7. Add character gallery read path.
+1. Add `.env.local` with Supabase public keys and server secrets locally.
+2. Seed the default character into Supabase instead of only local fixtures.
+3. Replace character gallery reads with Supabase public/official card queries.
+4. Add profile creation flow for authenticated users.
+5. Add DeepSeek provider adapter skeleton.
+6. Add prompt builder skeleton for a single character.
+7. Add non-persistent anonymous chat route and UI shell.
 
 This creates the first visible, data-shaped product surface without touching model calls yet.
 
@@ -220,4 +227,3 @@ This creates the first visible, data-shaped product surface without touching mod
 - Treat prompts, character cards, themes, and lore packs as versioned data.
 - Do not commit secrets, third-party copyrighted images, or copied lore dumps.
 - Prefer small migrations over large mixed-purpose migrations.
-

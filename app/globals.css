@@ -2,9 +2,11 @@
   color-scheme: dark;
   --background: #101014;
   --surface: #181820;
+  --surface-raised: #20202a;
   --text: #f3f0e8;
   --muted: #a5a0b5;
   --accent: #d6b86a;
+  --border: #2c2b35;
 }
 
 * {
@@ -38,3 +40,191 @@ select {
   font: inherit;
 }
 
+.app-shell {
+  display: grid;
+  min-height: 100vh;
+  grid-template-columns: 260px 1fr;
+}
+
+.sidebar {
+  border-right: 1px solid var(--border);
+  background: var(--surface);
+  padding: 20px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brand-mark {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.brand strong,
+.brand small {
+  display: block;
+}
+
+.brand small {
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.nav-list {
+  display: grid;
+  gap: 6px;
+  margin-top: 28px;
+}
+
+.nav-list a {
+  border-radius: 8px;
+  color: var(--muted);
+  padding: 10px 12px;
+}
+
+.nav-list a:hover {
+  background: var(--surface-raised);
+  color: var(--text);
+}
+
+.app-content {
+  min-width: 0;
+}
+
+.page {
+  width: min(1120px, 100%);
+  margin: 0 auto;
+  padding: 48px 28px;
+}
+
+.page-header {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 28px;
+}
+
+.page-header h1 {
+  margin: 0;
+  font-size: clamp(2rem, 5vw, 4rem);
+  line-height: 1;
+}
+
+.page-header p {
+  max-width: 720px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 1.05rem;
+  line-height: 1.7;
+}
+
+.grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+
+.card {
+  display: grid;
+  gap: 14px;
+  min-height: 220px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  padding: 20px;
+}
+
+.card h2,
+.card h3 {
+  margin: 0;
+}
+
+.card p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tag {
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 0.8rem;
+  padding: 5px 9px;
+}
+
+.button-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: auto;
+}
+
+.button {
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  color: var(--accent);
+  padding: 9px 12px;
+}
+
+.button.secondary {
+  border-color: var(--border);
+  color: var(--text);
+}
+
+.detail-list {
+  display: grid;
+  gap: 14px;
+}
+
+.detail-list div {
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 14px;
+}
+
+.detail-list dt {
+  color: var(--accent);
+  font-size: 0.82rem;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+}
+
+.detail-list dd {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+@media (max-width: 760px) {
+  .app-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    border-bottom: 1px solid var(--border);
+    border-right: 0;
+  }
+
+  .nav-list {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .nav-list a {
+    text-align: center;
+  }
+}
