@@ -1,0 +1,38 @@
+name: Feature Request
+description: Propose a new feature for Chat Recall
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for proposing a feature. Please describe the problem it solves and how it fits the project scope.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem statement
+      description: What problem does this feature solve? Be specific.
+      placeholder: As a creator, I want to...
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: How should the feature work? Include mockups, API shapes, or workflow descriptions.
+      placeholder: Add a /characters/new/edit page with form fields for...
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: What other approaches did you think about and reject?
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Scope alignment
+      options:
+        - label: This feature supports roleplay quality or creator workflows
+          required: true
+        - label: This feature does not require third-party copyrighted content to demonstrate
+          required: true
+        - label: This feature would work with a self-hosted instance
+        - label: I am willing to contribute an implementation

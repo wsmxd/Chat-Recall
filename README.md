@@ -1,29 +1,47 @@
 # Chat Recall
 
-Chat Recall is a planned open-source roleplay chat project for niche games, anime, and character-driven communities.
+Chat Recall is an open-source roleplay chat engine for niche games, anime, and character-driven communities. It combines structured character cards, retrieval-augmented knowledge bases, and long-running memory to create immersive roleplay experiences.
 
-The initial stack is:
+## Stack
 
-- Next.js for the web application
-- Supabase for auth, Postgres, storage, realtime, and vector search
-- Vercel for deployment
-- DeepSeek as the default LLM provider
-- Provider adapters for future model expansion
+- **Next.js 16** — web application
+- **Supabase** — auth, Postgres, pgvector, storage
+- **Vercel** — deployment (recommended)
+- **DeepSeek** — default LLM provider (streaming chat)
+- **Tongyi/DashScope** — default embedding provider (RAG)
+- **Zod** — schema validation for cards, themes, and API requests
 
-This repository currently contains the initial Next.js scaffold, Supabase migrations, and planning documentation. Product implementation will proceed in thin vertical slices.
+## Quickstart
 
-## Product Direction
+```bash
+# Clone and install
+git clone <repo-url>
+cd chat-recall
+npm install
 
-Chat Recall is designed around immersive character conversations backed by structured character cards, theme packs, and retrieval-augmented knowledge bases. The product should make it easy to ship a few polished default characters while allowing users and contributors to create their own cards, lore packs, model providers, themes, and roleplay modes.
+# Set up environment
+cp .env.local.example .env.local
+# Edit .env.local with your Supabase and API keys
 
-Core ideas:
+# Apply database migrations
+supabase db push
 
-- Character roleplay chat with long-running memory
-- Built-in and user-created character cards
-- Niche game/anime knowledge bases powered by Supabase vector storage
-- Theme switching based on character, world, or scene
-- DeepSeek-first model integration with extensible LLM provider adapters
-- Open-source contribution flow for character packs, lore packs, prompts, and UI themes
+# Start development server
+npm run dev
+```
+
+See the [Self-Hosting Guide](./docs/SELF_HOSTING.md) for detailed deployment instructions.
+
+## Features
+
+- Character gallery with browse and detail pages
+- Real-time streaming chat with character-aware prompt construction
+- RAG knowledge base: ingest lore documents, vector search, citation tracking
+- Memory system: auto-extract facts after conversations, pin important ones
+- Character card editor: create, edit, import/export JSON, fork from public cards
+- Theme system: per-character themes with mood variants
+- Auth: email/password with Supabase Auth, anonymous browsing
+- Conversation persistence: save and resume authenticated chat sessions
 
 ## Documentation
 
@@ -36,13 +54,15 @@ Core ideas:
 - [LLM Providers](./docs/LLM_PROVIDERS.md)
 - [Character Cards](./docs/CHARACTER_CARDS.md)
 - [Theme System](./docs/THEME_SYSTEM.md)
+- [Content Contribution Guidelines](./docs/CONTRIBUTING.md)
+- [Self-Hosting Guide](./docs/SELF_HOSTING.md)
+- [Moderation Design](./docs/MODERATION.md)
 - [Creative Ideas](./docs/CREATIVE_IDEAS.md)
 - [Implementation Plan](./docs/IMPLEMENTATION_PLAN.md)
 - [Environment and Deployment](./docs/ENVIRONMENT_AND_DEPLOYMENT.md)
 - [Open Source Decisions](./docs/OPEN_SOURCE_DECISIONS.md)
 - [Supabase GitHub Integration](./docs/SUPABASE_GITHUB_INTEGRATION.md)
 - [Roadmap](./docs/ROADMAP.md)
-- [Contributing](./CONTRIBUTING.md)
 
 ## Design Principles
 

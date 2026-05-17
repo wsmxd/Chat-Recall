@@ -1,0 +1,60 @@
+name: Bug Report
+description: Report a bug in Chat Recall
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug. Please fill out the sections below.
+  - type: textarea
+    id: description
+    attributes:
+      label: Describe the bug
+      description: A clear, concise description of what happened.
+      placeholder: When I send a message in the chat room...
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Numbered steps to trigger the bug.
+      placeholder: |
+        1. Go to /characters/archive-guide
+        2. Click "Start chat"
+        3. Send a message containing "tell me about..."
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What you expected to happen.
+      placeholder: The assistant should respond with lore-aware chat...
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: What actually happened, including error messages.
+      placeholder: The chat returned an empty response...
+  - type: input
+    id: version
+    attributes:
+      label: Chat Recall version or commit hash
+      placeholder: main, 7fb8bdf
+  - type: dropdown
+    id: deployment
+    attributes:
+      label: Deployment
+      options:
+        - Vercel (cloud)
+        - Local (next dev)
+        - Self-hosted
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs or screenshots
+      description: Paste browser console errors, server logs, or screenshots.
+      render: shell
