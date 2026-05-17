@@ -35,6 +35,8 @@ The embedding provider should be configured independently from the chat provider
 
 Changing the chat provider should not require rebuilding the knowledge base. Changing the embedding provider may require re-embedding documents because vector dimensions and semantics can differ.
 
+The current first migration uses `vector(1536)` as the default embedding size. If the selected embedding provider uses a different dimension, add a migration before ingestion to adjust the vector column and search RPC signature.
+
 ## Chunk Metadata
 
 Recommended metadata:
@@ -59,6 +61,8 @@ Start with vector similarity plus metadata filters:
 - Spoiler level
 - Canon preference
 - User language
+
+The initial database RPC is `match_document_chunks(query_embedding, match_count, filter_lore_pack_ids, filter_character_names, filter_spoiler_level, filter_canon_level)`.
 
 Later improvements:
 

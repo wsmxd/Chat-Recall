@@ -10,7 +10,7 @@ max_rows = 1000
 [db]
 port = 54322
 shadow_port = 54320
-major_version = 15
+major_version = 17
 
 [db.pooler]
 enabled = false
@@ -61,4 +61,3 @@ inspector_port = 8083
 enabled = false
 port = 54327
 backend = "postgres"
-

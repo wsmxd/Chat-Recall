@@ -137,6 +137,10 @@ Chunked content for retrieval.
 - `lore_pack_id`
 - `content`
 - `embedding`
+- `embedding_provider`
+- `embedding_model`
+- `embedding_dimension`
+- `embedding_content_hash`
 - `token_count`
 - `metadata`
 - `created_at`
