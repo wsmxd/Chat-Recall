@@ -6,6 +6,7 @@ import { createDeepSeekProvider } from "@/lib/llm/providers/deepseek";
 import { retrieveRelevantChunks } from "@/lib/rag/retrievers/vector-retriever";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { ensureProfile } from "@/lib/auth/server";
+import { getPinnedFacts, type MemoryEntry } from "@/lib/memories/queries";
 import { z } from "zod";
 
 const chatRequestSchema = z.object({
@@ -101,10 +102,27 @@ export async function POST(request: Request) {
       }
     }
 
+    // Memory retrieval: get pinned facts and active memories for this character
+    let activeMemories: MemoryEntry[] = [];
+    if (userId) {
+      try {
+        const characterId = await getSupabaseCharacterIdBySlug(characterSlug);
+        if (characterId) {
+          activeMemories = await getPinnedFacts({
+            userId,
+            characterId
+          });
+        }
+      } catch {
+        // Memory retrieval is best-effort
+      }
+    }
+
     const llmMessages = buildChatPrompt({
       character,
       messages,
-      loreContext: loreContext.length > 0 ? loreContext : undefined
+      loreContext: loreContext.length > 0 ? loreContext : undefined,
+      memories: activeMemories.length > 0 ? activeMemories : undefined
     });
 
     const provider = createDeepSeekProvider();
@@ -161,6 +179,41 @@ export async function POST(request: Request) {
                   })}\n\n`
                 )
               );
+
+              // Background memory extraction (fire-and-forget)
+              if (userId && activeConversationId && assistantContent) {
+                const extractionMessages = [
+                  ...messages,
+                  { id: "latest-assistant", role: "assistant" as const, content: assistantContent, createdAt: new Date().toISOString() }
+                ];
+                import("@/lib/memories/extractor").then(({ extractMemoryCandidates }) => {
+                  extractMemoryCandidates({
+                    characterName: character.name,
+                    characterSlug,
+                    conversationHistory: extractionMessages
+                  }).then((candidates) => {
+                    if (candidates.length > 0) {
+                      import("@/lib/memories/queries").then(({ createMemory }) => {
+                        Promise.all(
+                          candidates
+                            .filter((c) => c.confidence >= 0.6)
+                            .slice(0, 5)
+                            .map((c) =>
+                              createMemory({
+                                userId,
+                                conversationId: activeConversationId!,
+                                type: c.type,
+                                content: c.content,
+                                confidence: c.confidence,
+                                pinned: false
+                              })
+                            )
+                        ).catch(() => {});
+                      });
+                    }
+                  }).catch(() => {});
+                });
+              }
             }
           }
         } catch (error) {

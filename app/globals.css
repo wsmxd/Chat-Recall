@@ -670,6 +670,129 @@ select {
   padding: 8px 0;
 }
 
+/* ---- Memory Panel ---- */
+
+.memory-panel {
+  display: grid;
+  gap: 16px;
+}
+
+.memory-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.memory-header h2 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.memory-new {
+  min-height: auto;
+}
+
+.memory-error {
+  padding: 10px 14px;
+  border: 1px solid #d65b5b;
+  border-radius: 8px;
+  background: #2a1a1a;
+  color: #e8a0a0;
+  font-size: 0.85rem;
+}
+
+.memory-loading,
+.memory-empty {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.memory-list {
+  display: grid;
+  gap: 10px;
+}
+
+.memory-item {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  padding: 14px;
+  display: grid;
+  gap: 8px;
+}
+
+.memory-item.pinned {
+  border-color: var(--accent);
+  background: #1a1a24;
+}
+
+.memory-item-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.memory-type-badge {
+  border: 1px solid;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  padding: 2px 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.memory-confidence {
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+.memory-pinned-badge {
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  color: var(--accent);
+  font-size: 0.7rem;
+  padding: 2px 8px;
+}
+
+.memory-content {
+  margin: 0;
+  color: var(--text);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.memory-edit-form {
+  display: grid;
+  gap: 8px;
+}
+
+.memory-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.memory-action-btn {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.75rem;
+  padding: 4px 10px;
+  cursor: pointer;
+}
+
+.memory-action-btn:hover {
+  border-color: var(--muted);
+  color: var(--text);
+}
+
+.memory-action-btn.delete:hover {
+  border-color: #d65b5b;
+  color: #d65b5b;
+}
+
 /* ---- Responsive ---- */
 
 @media (max-width: 760px) {

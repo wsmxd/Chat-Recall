@@ -1,6 +1,7 @@
 import type { CharacterSummary } from "@/lib/characters/schema";
 import type { LLMMessage } from "@/lib/llm/types";
 import type { LoreChunk } from "@/lib/rag/types";
+import type { MemoryEntry } from "@/lib/memories/queries";
 
 export interface ChatMessage {
   id: string;
@@ -81,14 +82,24 @@ export function buildChatPrompt(params: {
   messages: ChatMessage[];
   systemInstructions?: string[];
   loreContext?: LoreChunk[];
+  memories?: MemoryEntry[];
 }): LLMMessage[] {
-  const { character, messages, systemInstructions, loreContext } = params;
+  const { character, messages, systemInstructions, loreContext, memories } = params;
 
   const systemContent = buildSystemPrompt(character);
   const extras: string[] = [];
 
   if (systemInstructions?.length) {
     extras.push(...systemInstructions);
+  }
+
+  // Active memories from DB (pinned + relationship timeline)
+  if (memories && memories.length > 0) {
+    const memoryLines = memories.map((m) => {
+      const confidenceNote = m.confidence < 0.8 ? ` [confidence: ${(m.confidence * 100).toFixed(0)}%]` : "";
+      return `- [${m.type}] ${m.content}${confidenceNote}`;
+    });
+    extras.push(`Active Memories:\n${memoryLines.join("\n")}`);
   }
 
   if (loreContext && loreContext.length > 0) {
