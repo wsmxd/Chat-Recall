@@ -3,6 +3,7 @@ import { z } from "zod";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { characterCardSchema, type CharacterVisibility } from "@/lib/characters/schema";
 import { createCharacter, listUserCharacters } from "@/lib/characters/mutations";
+import { safeError } from "@/lib/api/errors";
 
 const createCharacterSchema = z.object({
   slug: z.string().min(1).regex(/^[a-z0-9-]+$/),
@@ -28,6 +29,13 @@ export async function GET() {
   return NextResponse.json({ characters });
 }
 
+async function handleRequest(request: Request) {
+  if (request.headers.get("content-type")?.includes("application/json") !== true) {
+    return NextResponse.json({ error: "Content-Type must be application/json" }, { status: 415 });
+  }
+  return request.json();
+}
+
 export async function POST(request: Request) {
   try {
     const supabase = await createSupabaseServerClient();
@@ -40,7 +48,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Authentication required" }, { status: 401 });
     }
 
-    const body = await request.json();
+    const body = await handleRequest(request);
     const parsed = createCharacterSchema.safeParse(body);
 
     if (!parsed.success) {
@@ -69,7 +77,6 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ character }, { status: 201 });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Unknown error";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json({ error: safeError(error) }, { status: 500 });
   }
 }

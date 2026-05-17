@@ -7,6 +7,7 @@ import { retrieveRelevantChunks } from "@/lib/rag/retrievers/vector-retriever";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { ensureProfile } from "@/lib/auth/server";
 import { getPinnedFacts, type MemoryEntry } from "@/lib/memories/queries";
+import { safeError } from "@/lib/api/errors";
 import { z } from "zod";
 
 const chatRequestSchema = z.object({
@@ -25,6 +26,13 @@ const chatRequestSchema = z.object({
 
 export async function POST(request: Request) {
   try {
+    if (request.headers.get("content-type")?.includes("application/json") !== true) {
+      return new Response(JSON.stringify({ error: "Content-Type must be application/json" }), {
+        status: 415,
+        headers: { "Content-Type": "application/json" }
+      });
+    }
+
     const body = await request.json();
     const parsed = chatRequestSchema.safeParse(body);
 
@@ -54,6 +62,18 @@ export async function POST(request: Request) {
     const userId = userData?.user?.id ?? null;
     let activeConversationId = conversationId ?? null;
     let userMsgId: string | null = null;
+
+    // Verify conversation ownership if provided
+    if (userId && activeConversationId) {
+      const { getConversation } = await import("@/lib/chat/conversations");
+      const existing = await getConversation(activeConversationId, userId);
+      if (!existing) {
+        return new Response(JSON.stringify({ error: "Conversation not found" }), {
+          status: 404,
+          headers: { "Content-Type": "application/json" }
+        });
+      }
+    }
 
     // Save user message if authenticated
     if (userId) {
@@ -148,7 +168,7 @@ export async function POST(request: Request) {
               controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: "token", value: event.value })}\n\n`));
             } else if (event.type === "error") {
               controller.enqueue(
-                encoder.encode(`data: ${JSON.stringify({ type: "error", error: event.error.message })}\n\n`)
+                encoder.encode(`data: ${JSON.stringify({ type: "error", error: safeError(event.error) })}\n\n`)
               );
             } else if (event.type === "done") {
               // Save assistant message if authenticated
@@ -217,7 +237,7 @@ export async function POST(request: Request) {
             }
           }
         } catch (error) {
-          const message = error instanceof Error ? error.message : "Unknown error";
+          const message = safeError(error);
           controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: "error", error: message })}\n\n`));
         } finally {
           controller.close();
@@ -233,8 +253,7 @@ export async function POST(request: Request) {
       }
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Unknown error";
-    return new Response(JSON.stringify({ error: message }), {
+    return new Response(JSON.stringify({ error: safeError(error) }), {
       status: 500,
       headers: { "Content-Type": "application/json" }
     });

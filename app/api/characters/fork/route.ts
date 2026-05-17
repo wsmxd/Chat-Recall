@@ -3,6 +3,7 @@ import { z } from "zod";
 import { createCharacter } from "@/lib/characters/mutations";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getPublicCharacterBySlug } from "@/lib/characters/queries";
+import { safeError } from "@/lib/api/errors";
 
 const forkRequestSchema = z.object({
   sourceSlug: z.string().min(1),
@@ -22,6 +23,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Authentication required" }, { status: 401 });
     }
 
+    if (request.headers.get("content-type")?.includes("application/json") !== true) {
+      return NextResponse.json({ error: "Content-Type must be application/json" }, { status: 415 });
+    }
     const body = await request.json();
     const parsed = forkRequestSchema.safeParse(body);
 
@@ -66,7 +70,6 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ character }, { status: 201 });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Unknown error";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json({ error: safeError(error) }, { status: 500 });
   }
 }

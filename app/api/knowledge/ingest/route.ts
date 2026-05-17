@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { ingestDocument } from "@/lib/rag/ingestion/pipeline";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { safeError } from "@/lib/api/errors";
 import { z } from "zod";
 
 const ingestRequestSchema = z.object({
@@ -34,6 +35,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Authentication required" }, { status: 401 });
     }
 
+    if (request.headers.get("content-type")?.includes("application/json") !== true) {
+      return NextResponse.json({ error: "Content-Type must be application/json" }, { status: 415 });
+    }
+
     const { lorePackId } = parsed.data;
     const { data: lorePack } = await supabase
       .from("lore_packs")
@@ -58,7 +63,6 @@ export async function POST(request: Request) {
       embeddingDimensions: result.embeddingDimensions
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Unknown error";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json({ error: safeError(error) }, { status: 500 });
   }
 }

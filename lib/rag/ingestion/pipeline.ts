@@ -48,7 +48,7 @@ export async function ingestDocument(params: IngestParams): Promise<IngestionRes
     .single();
 
   if (docError || !doc) {
-    throw new Error(`Failed to create document: ${docError?.message ?? "Unknown error"}`);
+    throw new Error("Failed to create document in database");
   }
 
   const docMetadata: Record<string, unknown> = {
@@ -82,7 +82,7 @@ export async function ingestDocument(params: IngestParams): Promise<IngestionRes
     .insert(chunkRows);
 
   if (chunkError) {
-    throw new Error(`Failed to store chunks: ${chunkError.message}`);
+    throw new Error("Failed to store document chunks in database");
   }
 
   return {

@@ -3,6 +3,7 @@ import { z } from "zod";
 import { characterCardSchema } from "@/lib/characters/schema";
 import { createCharacter, getCharacterById } from "@/lib/characters/mutations";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { safeError } from "@/lib/api/errors";
 
 const importRequestSchema = z.object({
   card: characterCardSchema,
@@ -25,6 +26,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Authentication required" }, { status: 401 });
     }
 
+    if (request.headers.get("content-type")?.includes("application/json") !== true) {
+      return NextResponse.json({ error: "Content-Type must be application/json" }, { status: 415 });
+    }
     const body = await request.json();
     const parsed = importRequestSchema.safeParse(body);
 
@@ -54,8 +58,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ character }, { status: 201 });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Unknown error";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json({ error: safeError(error) }, { status: 500 });
   }
 }
 
@@ -69,6 +72,15 @@ export async function GET(request: Request) {
 
   const character = await getCharacterById(id);
   if (!character) {
+    return NextResponse.json({ error: "Character not found" }, { status: 404 });
+  }
+
+  const supabase = await createSupabaseServerClient();
+  const { data: userData } = supabase
+    ? await supabase.auth.getUser()
+    : { data: { user: null } };
+
+  if (character.visibility === "private" && character.owner_id !== userData?.user?.id) {
     return NextResponse.json({ error: "Character not found" }, { status: 404 });
   }
 

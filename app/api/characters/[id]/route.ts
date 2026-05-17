@@ -3,6 +3,7 @@ import { z } from "zod";
 import { characterCardSchema } from "@/lib/characters/schema";
 import { getCharacterById, updateCharacter, deleteCharacter } from "@/lib/characters/mutations";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { safeError } from "@/lib/api/errors";
 
 const updateCharacterSchema = z.object({
   slug: z.string().min(1).regex(/^[a-z0-9-]+$/).optional(),
@@ -21,6 +22,15 @@ export async function GET(
   const character = await getCharacterById(id);
 
   if (!character) {
+    return NextResponse.json({ error: "Character not found" }, { status: 404 });
+  }
+
+  const supabase = await createSupabaseServerClient();
+  const { data: userData } = supabase
+    ? await supabase.auth.getUser()
+    : { data: { user: null } };
+
+  if (character.visibility === "private" && character.owner_id !== userData?.user?.id) {
     return NextResponse.json({ error: "Character not found" }, { status: 404 });
   }
 
@@ -53,6 +63,9 @@ export async function PATCH(
       return NextResponse.json({ error: "Not authorized" }, { status: 403 });
     }
 
+    if (request.headers.get("content-type")?.includes("application/json") !== true) {
+      return NextResponse.json({ error: "Content-Type must be application/json" }, { status: 415 });
+    }
     const body = await request.json();
     const parsed = updateCharacterSchema.safeParse(body);
 
@@ -78,8 +91,7 @@ export async function PATCH(
 
     return NextResponse.json({ character: updated });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Unknown error";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json({ error: safeError(error) }, { status: 500 });
   }
 }
 
@@ -116,7 +128,6 @@ export async function DELETE(
 
     return NextResponse.json({ ok: true });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Unknown error";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json({ error: safeError(error) }, { status: 500 });
   }
 }
