@@ -115,6 +115,11 @@ export default async function CharacterPage({ params }: CharacterPageProps) {
             Start chat
           </Link>
           {user && (
+            <Link className="button secondary" href={`/characters/${character.slug}/edit`}>
+              Edit
+            </Link>
+          )}
+          {user && (
             <span className="button secondary" data-action="fork" data-slug={character.slug}>
               Fork
             </span>

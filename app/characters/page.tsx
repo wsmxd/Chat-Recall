@@ -16,10 +16,18 @@ export default async function CharactersPage() {
         <header className="page-header">
           <h1>Characters</h1>
           <p>
-            Public and official cards are visible to anonymous users. Creator actions will stay
-            locked until authentication and ownership flows are implemented.
+            Public and official cards are visible to anonymous users. Sign in to create, edit, or
+            fork your own characters.
           </p>
         </header>
+
+        {user && (
+          <div className="button-row" style={{ marginBottom: "16px" }}>
+            <Link className="button" href="/characters/new">
+              Create Character
+            </Link>
+          </div>
+        )}
 
         {userCharacters.length > 0 && (
           <section className="grid">
@@ -42,6 +50,9 @@ export default async function CharactersPage() {
                 <div className="button-row">
                   <Link className="button" href={`/characters/${character.slug}`}>
                     Open card
+                  </Link>
+                  <Link className="button secondary" href={`/characters/${character.slug}/edit`}>
+                    Edit
                   </Link>
                   <Link className="button" href={`/chat/${character.slug}`}>
                     Start chat
