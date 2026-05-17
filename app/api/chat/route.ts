@@ -45,11 +45,11 @@ export async function POST(request: Request) {
 
     // Check auth for conversation persistence
     const supabase = await createSupabaseServerClient();
-    const { data: sessionData } = supabase
-      ? await supabase.auth.getSession()
-      : { data: { session: null } };
+    const { data: userData } = supabase
+      ? await supabase.auth.getUser()
+      : { data: { user: null } };
 
-    const userId = sessionData?.session?.user?.id ?? null;
+    const userId = userData?.user?.id ?? null;
     let activeConversationId = conversationId ?? null;
     let userMsgId: string | null = null;
 

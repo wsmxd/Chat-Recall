@@ -3,8 +3,8 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 export async function getSession() {
   const supabase = await createSupabaseServerClient();
   if (!supabase) return { user: null };
-  const { data } = await supabase.auth.getSession();
-  return { user: data.session?.user ?? null };
+  const { data } = await supabase.auth.getUser();
+  return { user: data.user ?? null };
 }
 
 export async function getProfile(userId: string) {

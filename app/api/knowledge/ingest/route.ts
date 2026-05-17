@@ -29,8 +29,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Supabase not configured" }, { status: 503 });
     }
 
-    const { data: session } = await supabase.auth.getSession();
-    if (!session?.session?.user) {
+    const { data: userData } = await supabase.auth.getUser();
+    if (!userData?.user) {
       return NextResponse.json({ error: "Authentication required" }, { status: 401 });
     }
 
@@ -45,7 +45,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Lore pack not found" }, { status: 404 });
     }
 
-    if (lorePack.owner_id !== session.session.user.id) {
+    if (lorePack.owner_id !== userData.user.id) {
       return NextResponse.json({ error: "Not authorized" }, { status: 403 });
     }
 
