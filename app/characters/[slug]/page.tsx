@@ -91,9 +91,9 @@ export default async function CharacterPage({ params }: CharacterPageProps) {
           <Link className="button secondary" href="/characters">
             Back to characters
           </Link>
-          <span className="button" aria-disabled="true">
-            Chat coming next
-          </span>
+          <Link className="button" href={`/chat/${character.slug}`}>
+            Start chat
+          </Link>
         </div>
       </main>
     </AppShell>

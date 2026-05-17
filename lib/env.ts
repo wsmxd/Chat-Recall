@@ -44,6 +44,16 @@ export function getServerEnv(): ServerEnv {
   return parsed.data;
 }
 
+export function getPublicEnvOrNull(): PublicEnv | null {
+  const parsed = publicEnvSchema.safeParse(process.env);
+  return parsed.success ? parsed.data : null;
+}
+
+export function getServerEnvOrNull(): ServerEnv | null {
+  const parsed = serverEnvSchema.safeParse(process.env);
+  return parsed.success ? parsed.data : null;
+}
+
 export function getEnvironmentStatus() {
   return {
     supabaseUrl: Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL),
