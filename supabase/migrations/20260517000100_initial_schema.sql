@@ -210,6 +210,10 @@ on public.profiles for update
 using (auth.uid() = id)
 with check (auth.uid() = id);
 
+create policy "profiles are owner insertable"
+on public.profiles for insert
+with check (auth.uid() = id);
+
 create policy "public themes are readable"
 on public.themes for select
 using (visibility in ('public', 'official') or auth.uid() = owner_id);

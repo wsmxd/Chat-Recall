@@ -86,7 +86,7 @@ export async function POST(request: Request) {
 
     // Save user message if authenticated
     if (userId) {
-      await ensureProfile(userId);
+      await ensureProfile(userId, supabase ?? undefined);
 
       // Resolve character UUID
       const characterId = await getSupabaseCharacterIdBySlug(characterSlug);
