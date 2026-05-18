@@ -83,13 +83,18 @@ export function ModelSelector() {
         body: JSON.stringify({ provider, model })
       });
 
-      const data = await response.json();
+      console.log("PUT response status:", response.status);
+      const text = await response.text();
+      console.log("PUT response body:", text);
+
+      let data: Record<string, unknown> = {};
+      try { data = JSON.parse(text); } catch {}
 
       if (response.ok && data.config) {
         setSaved(true);
         localStorage.setItem("defaultProvider", JSON.stringify({ provider, model }));
       } else {
-        setError(data.error || "Save failed");
+        setError(typeof data.error === "string" ? data.error : "Save failed");
         console.error("Save provider config error:", data);
       }
     } catch (e) {

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getUserDefaultProvider, setDefaultProvider } from "@/lib/chat/provider-config";
+import { ensureProfile } from "@/lib/auth/server";
 const setProviderSchema = z.object({
   provider: z.string().min(1),
   model: z.string().min(1),
@@ -49,6 +50,8 @@ export async function PUT(request: Request) {
   if (!parsed.success) {
     return NextResponse.json({ error: "Invalid config", details: parsed.error.issues }, { status: 400 });
   }
+
+  await ensureProfile(userData.user.id, supabase);
 
   const config = await setDefaultProvider(
     supabase,

@@ -21,7 +21,10 @@ export async function getUserDefaultProvider(
     .eq("is_default", true)
     .maybeSingle();
 
-  if (error || !data) return null;
+  if (error || !data) {
+    if (error) console.error("getUserDefaultProvider error:", error);
+    return null;
+  }
 
   return {
     id: data.id,
@@ -58,7 +61,10 @@ export async function setDefaultProvider(
     .select()
     .single();
 
-  if (error || !data) return null;
+  if (error || !data) {
+    console.error("setDefaultProvider insert error:", error);
+    return null;
+  }
 
   return {
     id: data.id,
