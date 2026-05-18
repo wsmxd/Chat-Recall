@@ -44,11 +44,19 @@ function makeGreeting(character: CharacterSummary): ChatMessage {
 export function ChatRoom({
   character,
   initialConversationId,
-  initialMessages
+  initialMessages,
+  groupCharacters,
+  mode = "single",
+  sceneParams,
+  characterName
 }: {
   character: CharacterSummary;
   initialConversationId?: string;
   initialMessages?: ChatMessage[];
+  groupCharacters?: CharacterSummary[];
+  mode?: "single" | "group" | "scene";
+  sceneParams?: { location?: string; mood?: string; time?: string; description?: string };
+  characterName?: string;
 }) {
   const { user } = useAuth();
   const loadedRef = useRef(false);
@@ -122,6 +130,9 @@ export function ChatRoom({
         characterSlug: character.slug,
         messages: updatedMessages,
         conversationId,
+        mode,
+        characterSlugs: groupCharacters?.map((c) => c.slug),
+        sceneParams,
         onToken: (token) => {
           assistantMsgRef.current += token;
           setMessages((prev) => {
@@ -172,7 +183,7 @@ export function ChatRoom({
       setStreaming(false);
       inputRef.current?.focus();
     },
-    [input, messages, streaming, character.slug, conversationId]
+    [input, messages, streaming, character.slug, conversationId, groupCharacters, mode, sceneParams]
   );
 
   const handleCancel = useCallback(() => {
@@ -215,8 +226,13 @@ export function ChatRoom({
   return (
     <div className="chat-room">
       <header className="chat-room-header">
-        <h2>{character.name}</h2>
-        {character.subtitle && <p>{character.subtitle}</p>}
+        <h2>{characterName || character.name}</h2>
+        {mode !== "single" && (
+          <p>
+            <span className="tag">{mode === "scene" ? "Scene Director" : "Group Chat"}</span>
+          </p>
+        )}
+        {!characterName && character.subtitle && <p>{character.subtitle}</p>}
         {user && conversationId && (
           <p className="chat-persisted">Saved — <Link href="/conversations">view all</Link></p>
         )}

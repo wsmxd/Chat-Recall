@@ -1,5 +1,5 @@
 import { getPublicCharacterBySlug, getSupabaseCharacterIdBySlug } from "@/lib/characters/queries";
-import { buildChatPrompt } from "@/lib/chat/prompt-builder";
+import { buildChatPrompt, buildGroupChatPrompt, buildSceneDirectorPrompt } from "@/lib/chat/prompt-builder";
 import type { LoreChunk } from "@/lib/rag/types";
 import { createConversation, saveMessage } from "@/lib/chat/conversations";
 import { createDeepSeekProvider } from "@/lib/llm/providers/deepseek";
@@ -22,7 +22,15 @@ const chatRequestSchema = z.object({
       createdAt: z.string()
     })
   ),
-  model: z.string().optional()
+  model: z.string().optional(),
+  mode: z.enum(["single", "group", "scene"]).default("single"),
+  characterSlugs: z.array(z.string()).optional(),
+  sceneParams: z.object({
+    location: z.string().optional(),
+    mood: z.string().optional(),
+    time: z.string().optional(),
+    description: z.string().optional()
+  }).optional()
 });
 
 export async function POST(request: Request) {
@@ -44,7 +52,7 @@ export async function POST(request: Request) {
       });
     }
 
-    const { characterSlug, conversationId, messages, model } = parsed.data;
+    const { characterSlug, conversationId, messages, model, mode, characterSlugs, sceneParams } = parsed.data;
 
     const character = await getPublicCharacterBySlug(characterSlug);
     if (!character) {
@@ -141,12 +149,34 @@ export async function POST(request: Request) {
       }
     }
 
-    const llmMessages = buildChatPrompt({
-      character,
-      messages,
-      loreContext: loreContext.length > 0 ? loreContext : undefined,
-      memories: activeMemories.length > 0 ? activeMemories : undefined
-    });
+    // Build prompt based on mode
+    let llmMessages;
+    const allSlugs = characterSlugs?.length ? characterSlugs : [characterSlug];
+    const allCharacters = (await Promise.all(allSlugs.map((s) => getPublicCharacterBySlug(s))))
+      .filter((c): c is NonNullable<typeof c> => c !== null);
+
+    if (mode === "group" && allCharacters.length > 1) {
+      llmMessages = buildGroupChatPrompt({
+        characters: allCharacters,
+        messages,
+        loreContext: loreContext.length > 0 ? loreContext : undefined,
+        memories: activeMemories.length > 0 ? activeMemories : undefined
+      });
+    } else if (mode === "scene") {
+      llmMessages = buildSceneDirectorPrompt({
+        characters: allCharacters,
+        messages,
+        sceneParams,
+        loreContext: loreContext.length > 0 ? loreContext : undefined
+      });
+    } else {
+      llmMessages = buildChatPrompt({
+        character,
+        messages,
+        loreContext: loreContext.length > 0 ? loreContext : undefined,
+        memories: activeMemories.length > 0 ? activeMemories : undefined
+      });
+    }
 
     // Resolve model: request param > user DB default > env default
     let resolvedModel = model ?? "deepseek-chat";

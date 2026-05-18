@@ -19,6 +19,9 @@ export interface ChatStreamOptions {
   messages: ChatMessage[];
   conversationId?: string;
   model?: string;
+  mode?: "single" | "group" | "scene";
+  characterSlugs?: string[];
+  sceneParams?: { location?: string; mood?: string; time?: string; description?: string };
   onToken: (token: string) => void;
   onError: (error: string) => void;
   onDone: (result: { usage?: ChatStreamEvent["usage"]; conversationId?: string }) => void;
@@ -26,13 +29,13 @@ export interface ChatStreamOptions {
 }
 
 export async function streamChat(options: ChatStreamOptions): Promise<void> {
-  const { characterSlug, messages, conversationId, model, onToken, onError, onDone, signal } = options;
+  const { characterSlug, messages, conversationId, model, mode, characterSlugs, sceneParams, onToken, onError, onDone, signal } = options;
 
   try {
     const response = await fetch("/api/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ characterSlug, messages, conversationId, model }),
+      body: JSON.stringify({ characterSlug, messages, conversationId, model, mode, characterSlugs, sceneParams }),
       signal
     });
 
