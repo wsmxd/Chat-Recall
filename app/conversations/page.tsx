@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { AppShell } from "@/components/app-shell";
 import { getSession } from "@/lib/auth/server";
 import { listConversations } from "@/lib/chat/conversations";
+import { DeleteConversationButton } from "@/components/delete-conversation-button";
 
 export default async function ConversationsPage() {
   const { user } = await getSession();
@@ -24,22 +25,23 @@ export default async function ConversationsPage() {
         ) : (
           <section className="grid">
             {conversations.map((conv) => (
-              <Link
-                key={conv.id}
-                href={`/conversations/${conv.id}`}
-                className="card conv-card"
-              >
-                <div>
-                  <h2>{conv.characterName || conv.title || "Untitled"}</h2>
-                  {conv.characterSlug && (
-                    <p>Character: {conv.characterSlug}</p>
-                  )}
+              <div key={conv.id} className="card conv-card">
+                <Link href={`/conversations/${conv.id}`}>
+                  <div>
+                    <h2>{conv.characterName || conv.title || "Untitled"}</h2>
+                    {conv.characterSlug && (
+                      <p>Character: {conv.characterSlug}</p>
+                    )}
+                  </div>
+                  <div className="conv-meta">
+                    <span>{conv.messageCount} messages</span>
+                    <span>{new Date(conv.lastMessageAt).toLocaleDateString()}</span>
+                  </div>
+                </Link>
+                <div style={{ marginTop: "8px" }}>
+                  <DeleteConversationButton id={conv.id} />
                 </div>
-                <div className="conv-meta">
-                  <span>{conv.messageCount} messages</span>
-                  <span>{new Date(conv.lastMessageAt).toLocaleDateString()}</span>
-                </div>
-              </Link>
+              </div>
             ))}
           </section>
         )}
