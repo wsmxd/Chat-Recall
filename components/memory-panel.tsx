@@ -193,6 +193,16 @@ export function MemoryPanel({ conversationId, characterName }: MemoryPanelProps)
           <button className="button secondary" onClick={fetchMemories} type="button">
             Refresh
           </button>
+          <button
+            className="button secondary"
+            onClick={() => {
+              const json = JSON.stringify(memories.map((m) => ({ type: m.type, content: m.content, confidence: m.confidence, pinned: m.pinned })), null, 2);
+              navigator.clipboard.writeText(json);
+            }}
+            type="button"
+          >
+            Export
+          </button>
         </div>
       </header>
 

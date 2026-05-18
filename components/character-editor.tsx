@@ -50,7 +50,7 @@ type FormData = {
     redistribution: string;
     attribution: string;
   };
-  visibility: "private" | "unlisted" | "public";
+  visibility: "private" | "unlisted" | "public" | "official";
 };
 
 const defaultFormData: FormData = {
@@ -490,6 +490,7 @@ export function CharacterEditor({ mode, initialData }: CharacterEditorProps) {
             <option value="private">Private</option>
             <option value="unlisted">Unlisted</option>
             <option value="public">Public</option>
+            <option value="official">Official</option>
           </select>
         </label>
       </div>

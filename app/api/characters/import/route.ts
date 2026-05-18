@@ -10,7 +10,7 @@ const importRequestSchema = z.object({
   slug: z.string().min(1).regex(/^[a-z0-9-]+$/),
   name: z.string().min(1),
   subtitle: z.string().optional(),
-  visibility: z.enum(["private", "unlisted", "public"]).default("private"),
+  visibility: z.enum(["private", "unlisted", "public", "official"]).default("private"),
   themeId: z.string().uuid().optional()
 });
 

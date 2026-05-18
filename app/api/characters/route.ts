@@ -10,7 +10,7 @@ const createCharacterSchema = z.object({
   name: z.string().min(1),
   subtitle: z.string().optional(),
   card: characterCardSchema,
-  visibility: z.enum(["private", "unlisted", "public"]).default("private"),
+  visibility: z.enum(["private", "unlisted", "public", "official"]).default("private"),
   themeId: z.string().uuid().optional()
 });
 
