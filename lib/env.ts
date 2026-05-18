@@ -6,23 +6,23 @@ const publicEnvSchema = z.object({
 });
 
 const serverEnvSchema = publicEnvSchema.extend({
-  SUPABASE_SERVICE_ROLE_KEY: z.string().min(1).optional(),
-  DEEPSEEK_API_KEY: z.string().min(1).optional(),
+  SUPABASE_SERVICE_ROLE_KEY: z.preprocess((v) => (v === "" ? undefined : v), z.string().min(1).optional()),
+  DEEPSEEK_API_KEY: z.preprocess((v) => (v === "" ? undefined : v), z.string().min(1).optional()),
   DEEPSEEK_BASE_URL: z.url().default("https://api.deepseek.com"),
-  OPENAI_API_KEY: z.string().min(1).optional(),
+  OPENAI_API_KEY: z.preprocess((v) => (v === "" ? undefined : v), z.string().min(1).optional()),
   OPENAI_BASE_URL: z.string().default("https://api.openai.com"),
-  ANTHROPIC_API_KEY: z.string().min(1).optional(),
-  OPENROUTER_API_KEY: z.string().min(1).optional(),
-  KIMI_API_KEY: z.string().min(1).optional(),
-  QWEN_API_KEY: z.string().min(1).optional(),
-  GLM_API_KEY: z.string().min(1).optional(),
+  ANTHROPIC_API_KEY: z.preprocess((v) => (v === "" ? undefined : v), z.string().min(1).optional()),
+  OPENROUTER_API_KEY: z.preprocess((v) => (v === "" ? undefined : v), z.string().min(1).optional()),
+  KIMI_API_KEY: z.preprocess((v) => (v === "" ? undefined : v), z.string().min(1).optional()),
+  QWEN_API_KEY: z.preprocess((v) => (v === "" ? undefined : v), z.string().min(1).optional()),
+  GLM_API_KEY: z.preprocess((v) => (v === "" ? undefined : v), z.string().min(1).optional()),
   DEFAULT_LLM_PROVIDER: z.string().default("deepseek"),
   DEFAULT_LLM_MODEL: z.string().default("deepseek-chat"),
-  DASHSCOPE_API_KEY: z.string().min(1).optional(),
+  DASHSCOPE_API_KEY: z.preprocess((v) => (v === "" ? undefined : v), z.string().min(1).optional()),
   EMBEDDING_PROVIDER: z.string().default("tongyi"),
   EMBEDDING_MODEL: z.string().default("tongyi-embedding-vision-flash-2026-03-06"),
   EMBEDDING_DIMENSIONS: z.string().default("768"),
-  EMBEDDING_API_KEY: z.string().optional(),
+  EMBEDDING_API_KEY: z.preprocess((v) => (v === "" ? undefined : v), z.string().optional()),
   APP_URL: z.url().default("http://localhost:3000")
 });
 
@@ -60,7 +60,11 @@ export function getPublicEnvOrNull(): PublicEnv | null {
 
 export function getServerEnvOrNull(): ServerEnv | null {
   const parsed = serverEnvSchema.safeParse(process.env);
-  return parsed.success ? parsed.data : null;
+  if (!parsed.success) {
+    console.error("Env validation failed:", formatEnvError(parsed.error));
+    return null;
+  }
+  return parsed.data;
 }
 
 export function getEnvironmentStatus() {
