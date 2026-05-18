@@ -1,4 +1,5 @@
 import { AppShell } from "@/components/app-shell";
+import { LorePackList } from "@/components/lore-pack-list";
 
 export default function KnowledgePage() {
   return (
@@ -7,10 +8,11 @@ export default function KnowledgePage() {
         <header className="page-header">
           <h1>Knowledge</h1>
           <p>
-            The database vector layer is ready. The next RAG slice will add ingestion, chunking,
-            embedding providers, retrieval testing, and citation storage.
+            Manage lore packs and ingest documents for RAG retrieval.
+            Each lore pack can contain multiple documents that are chunked and embedded.
           </p>
         </header>
+        <LorePackList />
       </main>
     </AppShell>
   );
