@@ -5,6 +5,7 @@ import { getConversation, getConversationMessages } from "@/lib/chat/conversatio
 import { getPublicCharacterBySlug } from "@/lib/characters/queries";
 import { ChatRoom } from "@/components/chat-room";
 import { AuthStatus } from "@/components/auth-status";
+import { ThemeStyle } from "@/components/theme-style";
 
 type ConversationPageProps = {
   params: Promise<{ id: string }>;
@@ -26,8 +27,11 @@ export default async function ConversationPage({ params }: ConversationPageProps
 
   const messages = await getConversationMessages(id);
 
+  const themeId = character.card.theme?.defaultThemeId;
+
   return (
     <div className="app-shell">
+      {themeId && <ThemeStyle themeSlug={themeId} />}
       <aside className="sidebar" aria-label="Primary navigation">
         <Link className="brand" href="/">
           <span className="brand-mark">CR</span>

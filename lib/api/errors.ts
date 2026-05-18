@@ -4,10 +4,3 @@ export function safeError(error: unknown): string {
   }
   return "Internal server error";
 }
-
-export function errorResponse(error: unknown, status = 500): Response {
-  return new Response(
-    JSON.stringify({ error: safeError(error) }),
-    { status, headers: { "Content-Type": "application/json" } }
-  );
-}

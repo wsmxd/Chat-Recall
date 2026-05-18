@@ -1,6 +1,7 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { chunkMarkdown, type TextChunk } from "@/lib/rag/ingestion/chunker";
 import { createTongyiEmbeddingProvider } from "@/lib/rag/embeddings/tongyi";
+import type { EmbeddingProvider } from "@/lib/rag/embeddings/types";
+import { chunkMarkdown, type TextChunk } from "./chunker";
 import type { Json } from "@/types/database.types";
 
 export interface IngestionResult {
@@ -16,6 +17,7 @@ export interface IngestParams {
   sourceType?: string;
   sourceUrl?: string;
   metadata?: Record<string, unknown>;
+  embeddingProvider?: EmbeddingProvider;
 }
 
 function createChunksMetadata(
@@ -33,7 +35,7 @@ export async function ingestDocument(params: IngestParams): Promise<IngestionRes
   const supabase = await createSupabaseServerClient();
   if (!supabase) throw new Error("Supabase not configured");
 
-  const provider = createTongyiEmbeddingProvider();
+  const provider = params.embeddingProvider ?? createTongyiEmbeddingProvider();
 
   const { data: doc, error: docError } = await supabase
     .from("documents")

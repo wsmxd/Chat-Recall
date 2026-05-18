@@ -42,6 +42,7 @@ export async function saveMessage(params: {
   characterId?: string | null;
   content: string;
   metadata?: Json;
+  tokenCount?: number;
 }): Promise<string | null> {
   const supabase = await createSupabaseServerClient();
   if (!supabase) return null;
@@ -53,7 +54,8 @@ export async function saveMessage(params: {
       role: params.role as "user" | "assistant" | "system",
       character_id: params.characterId ?? null,
       content: params.content,
-      metadata: (params.metadata ?? {}) as Json
+      metadata: (params.metadata ?? {}) as Json,
+      token_count: params.tokenCount ?? null
     })
     .select("id")
     .single();

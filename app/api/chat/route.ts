@@ -114,7 +114,9 @@ export async function POST(request: Request) {
         try {
           loreContext = await retrieveRelevantChunks({
             query: latestUserMsg.content,
-            lorePackIds: defaultLorePackIds
+            lorePackIds: defaultLorePackIds,
+            spoilerLevel: character.card.knowledge?.spoilerLevel === "user_selected" ? undefined : character.card.knowledge?.spoilerLevel,
+            canonLevel: character.card.knowledge?.canonPreference === "canon_first" ? "canon" : undefined
           });
         } catch {
           // RAG is best-effort, don't fail chat on retrieval errors
@@ -182,7 +184,8 @@ export async function POST(request: Request) {
                     role: "assistant",
                     characterId,
                     content: assistantContent,
-                    metadata: citations.length > 0 ? { citations } as unknown as import("@/types/database.types").Json : undefined
+                    metadata: citations.length > 0 ? { citations } as unknown as import("@/types/database.types").Json : undefined,
+                    tokenCount: event.response?.usage?.totalTokens
                   });
                 }
               }

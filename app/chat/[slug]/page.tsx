@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getPublicCharacterBySlug } from "@/lib/characters/queries";
 import { ChatRoom } from "@/components/chat-room";
+import { ThemeStyle } from "@/components/theme-style";
 
 type ChatPageProps = {
   params: Promise<{
@@ -17,8 +18,11 @@ export default async function ChatPage({ params }: ChatPageProps) {
     notFound();
   }
 
+  const themeId = character.card.theme?.defaultThemeId;
+
   return (
     <div className="app-shell">
+      {themeId && <ThemeStyle themeSlug={themeId} />}
       <aside className="sidebar" aria-label="Primary navigation">
         <Link className="brand" href="/">
           <span className="brand-mark">CR</span>

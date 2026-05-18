@@ -40,7 +40,8 @@ export function createDeepSeekProvider(): LLMProvider {
         temperature: options.temperature,
         max_tokens: options.maxTokens,
         stream: false
-      })
+      }),
+      signal: AbortSignal.timeout(90_000)
     });
 
     if (!response.ok) {
@@ -84,7 +85,8 @@ export function createDeepSeekProvider(): LLMProvider {
         temperature: options.temperature,
         max_tokens: options.maxTokens,
         stream: true
-      })
+      }),
+      signal: AbortSignal.timeout(120_000)
     });
 
     if (!response.ok) {

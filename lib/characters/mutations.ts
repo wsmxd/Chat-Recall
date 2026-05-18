@@ -72,7 +72,11 @@ export async function updateCharacter(params: {
   if (!supabase) return null;
 
   const updates: Record<string, unknown> = {};
-  if (params.card) updates.definition = params.card as unknown;
+  let cardChanged = false;
+  if (params.card) {
+    updates.definition = params.card as unknown;
+    cardChanged = true;
+  }
   if (params.slug !== undefined) updates.slug = params.slug;
   if (params.name !== undefined) updates.name = params.name;
   if (params.subtitle !== undefined) updates.subtitle = params.subtitle;
@@ -88,6 +92,14 @@ export async function updateCharacter(params: {
     .single();
 
   if (error || !data) return null;
+
+  if (cardChanged && data.card_version !== undefined) {
+    await supabase.from("character_versions").insert({
+      character_id: data.id,
+      version: (data.card_version ?? 0) + 1,
+      definition: data.definition
+    });
+  }
 
   return {
     ...data,
