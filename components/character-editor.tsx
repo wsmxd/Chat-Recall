@@ -202,7 +202,7 @@ function toCard(data: FormData): CharacterCard {
 
 interface CharacterEditorProps {
   mode: "create" | "edit";
-  initialData?: { slug: string; name: string; subtitle?: string; card: CharacterCard; id?: string };
+  initialData?: { slug: string; name: string; subtitle?: string; card: CharacterCard; id?: string; avatarUrl?: string; coverUrl?: string };
 }
 
 export function CharacterEditor({ mode, initialData }: CharacterEditorProps) {
@@ -217,6 +217,9 @@ export function CharacterEditor({ mode, initialData }: CharacterEditorProps) {
   const [importJson, setImportJson] = useState("");
   const [showImport, setShowImport] = useState(false);
   const [showExport, setShowExport] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState(initialData?.avatarUrl ?? "");
+  const [coverUrl, setCoverUrl] = useState(initialData?.coverUrl ?? "");
+  const [uploading, setUploading] = useState<"avatars" | "covers" | null>(null);
 
   const updateField = useCallback(<K extends keyof FormData>(key: K, value: FormData[K]) => {
     setFormData((prev) => ({ ...prev, [key]: value }));
@@ -371,6 +374,25 @@ export function CharacterEditor({ mode, initialData }: CharacterEditorProps) {
     }
   }, [importJson]);
 
+  const handleFileUpload = useCallback(async (bucket: "avatars" | "covers", file: File) => {
+    setUploading(bucket);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("bucket", bucket);
+      const response = await fetch("/api/upload", { method: "POST", body: formData });
+      const data = await response.json();
+      if (response.ok && data.url) {
+        if (bucket === "avatars") setAvatarUrl(data.url);
+        else setCoverUrl(data.url);
+      }
+    } catch {
+      // upload failure is non-blocking
+    } finally {
+      setUploading(null);
+    }
+  }, []);
+
   if (!user) {
     return (
       <div className="card">
@@ -492,6 +514,28 @@ export function CharacterEditor({ mode, initialData }: CharacterEditorProps) {
             <option value="public">Public</option>
             <option value="official">Official</option>
           </select>
+        </label>
+        <label className="editor-label">
+          Avatar
+          <input
+            className="editor-input"
+            type="file"
+            accept="image/jpeg,image/png,image/webp,image/gif"
+            onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFileUpload("avatars", f); }}
+            disabled={uploading === "avatars"}
+          />
+          {avatarUrl && <p style={{ color: "var(--muted)", fontSize: "0.8rem" }}>{avatarUrl.slice(0, 60)}...</p>}
+        </label>
+        <label className="editor-label">
+          Cover
+          <input
+            className="editor-input"
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFileUpload("covers", f); }}
+            disabled={uploading === "covers"}
+          />
+          {coverUrl && <p style={{ color: "var(--muted)", fontSize: "0.8rem" }}>{coverUrl.slice(0, 60)}...</p>}
         </label>
       </div>
 

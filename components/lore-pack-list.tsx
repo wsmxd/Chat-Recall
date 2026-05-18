@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@/components/auth-provider";
+import { LoreUploader } from "@/components/lore-uploader";
 
 interface LorePack {
   id: string;
@@ -20,6 +21,7 @@ export function LorePackList() {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [creating, setCreating] = useState(false);
+  const [uploadingFor, setUploadingFor] = useState<string | null>(null);
 
   const refresh = async () => {
     if (!user) return;
@@ -106,12 +108,22 @@ export function LorePackList() {
               <div className="memory-actions">
                 <button
                   className="memory-action-btn"
+                  onClick={() => setUploadingFor(uploadingFor === pack.id ? null : pack.id)}
+                  type="button"
+                >
+                  {uploadingFor === pack.id ? "Cancel Upload" : "Upload Document"}
+                </button>
+                <button
+                  className="memory-action-btn"
                   onClick={() => navigator.clipboard.writeText(pack.id)}
                   type="button"
                 >
                   Copy ID
                 </button>
               </div>
+              {uploadingFor === pack.id && (
+                <LoreUploader lorePackId={pack.id} onIngested={refresh} />
+              )}
             </div>
           ))}
         </div>
