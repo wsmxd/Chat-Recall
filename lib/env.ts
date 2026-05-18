@@ -10,7 +10,7 @@ const serverEnvSchema = publicEnvSchema.extend({
   DEEPSEEK_API_KEY: z.preprocess((v) => (v === "" ? undefined : v), z.string().min(1).optional()),
   DEEPSEEK_BASE_URL: z.url().default("https://api.deepseek.com"),
   OPENAI_API_KEY: z.preprocess((v) => (v === "" ? undefined : v), z.string().min(1).optional()),
-  OPENAI_BASE_URL: z.string().default("https://api.openai.com"),
+  OPENAI_BASE_URL: z.string().default("https://api.openai.com/v1"),
   ANTHROPIC_API_KEY: z.preprocess((v) => (v === "" ? undefined : v), z.string().min(1).optional()),
   OPENROUTER_API_KEY: z.preprocess((v) => (v === "" ? undefined : v), z.string().min(1).optional()),
   KIMI_API_KEY: z.preprocess((v) => (v === "" ? undefined : v), z.string().min(1).optional()),

@@ -9,7 +9,7 @@ const providerModels: Record<string, string[]> = {
   anthropic: ["claude-sonnet-4-20250514", "claude-3-5-haiku-20241022"],
   openrouter: ["openai/gpt-4o", "anthropic/claude-sonnet-4", "google/gemini-2.5-pro", "deepseek/deepseek-chat"],
   kimi: ["moonshot-v1-128k", "moonshot-v1-32k", "kimi-latest"],
-  qwen: ["qwen-max", "qwen-plus", "qwen-turbo"],
+  qwen: ["qwen3.6-flash", "qwen3.6-pro", "qwen-max", "qwen-plus", "qwen-turbo"],
   glm: ["glm-4-plus", "glm-4-flash", "glm-4-air"]
 };
 

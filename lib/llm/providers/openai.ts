@@ -31,9 +31,9 @@ export function createOpenAIProvider(config?: { baseUrl?: string; apiKeyEnv?: st
     const apiKey = env ? (env as Record<string, string | undefined>)[keyEnv] : undefined;
     if (!env || !apiKey) throw new Error(`${keyEnv} is not configured.`);
 
-    const baseUrl = customBaseUrl || env.OPENAI_BASE_URL || "https://api.openai.com";
+    const baseUrl = customBaseUrl || env.OPENAI_BASE_URL || "https://api.openai.com/v1";
 
-    const response = await fetch(`${baseUrl}/v1/chat/completions`, {
+    const response = await fetch(`${baseUrl}/chat/completions`, {
       method: "POST",
       headers: buildHeaders(apiKey),
       body: JSON.stringify({
@@ -71,9 +71,9 @@ export function createOpenAIProvider(config?: { baseUrl?: string; apiKeyEnv?: st
       return;
     }
 
-    const baseUrl = customBaseUrl || env.OPENAI_BASE_URL || "https://api.openai.com";
+    const baseUrl = customBaseUrl || env.OPENAI_BASE_URL || "https://api.openai.com/v1";
 
-    const response = await fetch(`${baseUrl}/v1/chat/completions`, {
+    const response = await fetch(`${baseUrl}/chat/completions`, {
       method: "POST",
       headers: buildHeaders(apiKey),
       body: JSON.stringify({
