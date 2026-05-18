@@ -43,26 +43,21 @@ export async function setDefaultProvider(
   const supabase = await createSupabaseServerClient();
   if (!supabase) return null;
 
-  // Unset any existing default
   await supabase
     .from("provider_configs")
     .update({ is_default: false })
     .eq("owner_id", userId)
     .eq("is_default", true);
 
-  // Upsert the new default
   const { data, error } = await supabase
     .from("provider_configs")
-    .upsert(
-      {
-        owner_id: userId,
-        provider,
-        model,
-        settings: (settings ?? {}) as never,
-        is_default: true
-      },
-      { onConflict: "owner_id,provider,model" }
-    )
+    .insert({
+      owner_id: userId,
+      provider,
+      model,
+      settings: (settings ?? {}) as never,
+      is_default: true
+    })
     .select()
     .single();
 

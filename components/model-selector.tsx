@@ -25,22 +25,31 @@ const providerNames: Record<string, string> = {
 
 export function ModelSelector() {
   const { user } = useAuth();
-  const [provider, setProvider] = useState("deepseek");
-  const [model, setModel] = useState("deepseek-chat");
-  const [loading, setLoading] = useState(false);
+  const [provider, setProvider] = useState<string | null>(null);
+  const [model, setModel] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
     if (!user) return;
+    setLoading(true);
     fetch("/api/provider-config")
       .then((r) => r.json())
       .then((data) => {
         if (data.config) {
           setProvider(data.config.provider);
           setModel(data.config.model);
+        } else {
+          setProvider("deepseek");
+          setModel("deepseek-chat");
         }
       })
-      .catch(() => {});
+      .catch(() => {
+        setProvider("deepseek");
+        setModel("deepseek-chat");
+      })
+      .finally(() => setLoading(false));
   }, [user]);
 
   const handleProviderChange = (p: string) => {
@@ -49,19 +58,30 @@ export function ModelSelector() {
   };
 
   const handleSave = async () => {
-    if (!user) return;
-    setLoading(true);
+    if (!user || !provider || !model) return;
+    setSaving(true);
     setSaved(false);
-
     const response = await fetch("/api/provider-config", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ provider, model })
     });
 
-    if (response.ok) setSaved(true);
-    setLoading(false);
+    if (response.ok) {
+      setSaved(true);
+      localStorage.setItem("defaultProvider", JSON.stringify({ provider, model }));
+    }
+    setSaving(false);
   };
+
+  if (loading) {
+    return (
+      <article className="card">
+        <h2>Chat Model</h2>
+        <p>Loading configuration...</p>
+      </article>
+    );
+  }
 
   return (
     <article className="card">
@@ -71,7 +91,7 @@ export function ModelSelector() {
         Provider
         <select
           className="editor-select"
-          value={provider}
+          value={provider ?? "deepseek"}
           onChange={(e) => handleProviderChange(e.target.value)}
         >
           {Object.entries(providerNames).map(([id, name]) => (
@@ -83,17 +103,17 @@ export function ModelSelector() {
         Model
         <select
           className="editor-select"
-          value={model}
+          value={model ?? "deepseek-chat"}
           onChange={(e) => setModel(e.target.value)}
         >
-          {(providerModels[provider] ?? []).map((m) => (
+          {(providerModels[provider ?? "deepseek"] ?? []).map((m) => (
             <option key={m} value={m}>{m}</option>
           ))}
         </select>
       </label>
       <div className="button-row" style={{ marginTop: "8px" }}>
-        <button className="button" onClick={handleSave} disabled={loading} type="button">
-          {loading ? "Saving..." : saved ? "Saved" : "Save"}
+        <button className="button" onClick={handleSave} disabled={saving} type="button">
+          {saving ? "Saving..." : saved ? "Saved" : "Save"}
         </button>
       </div>
     </article>
