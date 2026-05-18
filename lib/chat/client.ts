@@ -1,7 +1,7 @@
 import type { ChatMessage } from "@/lib/chat/prompt-builder";
 
 export interface ChatStreamEvent {
-  type: "token" | "error" | "done";
+  type: "token" | "reasoning" | "error" | "done";
   value?: string;
   error?: string;
   usage?: {
@@ -9,6 +9,7 @@ export interface ChatStreamEvent {
     outputTokens?: number;
     totalTokens?: number;
   };
+  reasoningContent?: string;
   conversationId?: string;
   userMessageId?: string;
   assistantMessageId?: string;
@@ -23,13 +24,14 @@ export interface ChatStreamOptions {
   characterSlugs?: string[];
   sceneParams?: { location?: string; mood?: string; time?: string; description?: string };
   onToken: (token: string) => void;
+  onReasoning?: (token: string) => void;
   onError: (error: string) => void;
-  onDone: (result: { usage?: ChatStreamEvent["usage"]; conversationId?: string }) => void;
+  onDone: (result: { usage?: ChatStreamEvent["usage"]; conversationId?: string; reasoningContent?: string }) => void;
   signal?: AbortSignal;
 }
 
 export async function streamChat(options: ChatStreamOptions): Promise<void> {
-  const { characterSlug, messages, conversationId, model, mode, characterSlugs, sceneParams, onToken, onError, onDone, signal } = options;
+  const { characterSlug, messages, conversationId, model, mode, characterSlugs, sceneParams, onToken, onReasoning, onError, onDone, signal } = options;
 
   try {
     const response = await fetch("/api/chat", {
@@ -72,12 +74,15 @@ export async function streamChat(options: ChatStreamOptions): Promise<void> {
             const event: ChatStreamEvent = JSON.parse(data);
             if (event.type === "token" && event.value) {
               onToken(event.value);
+            } else if (event.type === "reasoning" && event.value) {
+              onReasoning?.(event.value);
             } else if (event.type === "error") {
               onError(event.error ?? "Unknown error");
             } else if (event.type === "done") {
               onDone({
                 usage: event.usage,
-                conversationId: event.conversationId
+                conversationId: event.conversationId,
+                reasoningContent: event.reasoningContent
               });
             }
           } catch {

@@ -191,6 +191,7 @@ export async function POST(request: Request) {
 
     const provider = await createProvider(providerId);
     let assistantContent = "";
+    let reasoningContent = "";
     const citations = loreContext.map((chunk) => ({
       chunkId: chunk.chunkId,
       content: chunk.content.slice(0, 200),
@@ -205,9 +206,13 @@ export async function POST(request: Request) {
           for await (const event of provider.stream({
             model: resolvedModel,
             messages: llmMessages,
-            temperature: character.card.model.temperature
+            temperature: character.card.model.temperature,
+            reasoningEffort: character.card.model.preferredProfile === "roleplay-creative" ? "high" : undefined
           })) {
-            if (event.type === "token") {
+            if (event.type === "reasoning") {
+              reasoningContent += event.value;
+              controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: "reasoning", value: event.value })}\n\n`));
+            } else if (event.type === "token") {
               assistantContent += event.value;
               controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: "token", value: event.value })}\n\n`));
             } else if (event.type === "error") {
@@ -237,6 +242,7 @@ export async function POST(request: Request) {
                   `data: ${JSON.stringify({
                     type: "done",
                     usage: event.response?.usage,
+                    reasoningContent: reasoningContent || undefined,
                     conversationId: activeConversationId,
                     userMessageId: userMsgId,
                     assistantMessageId: assistantMsgId,

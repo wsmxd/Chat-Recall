@@ -20,16 +20,17 @@ function parseSSELine(line: string): Record<string, unknown> | null {
   }
 }
 
-export function createOpenAIProvider(): LLMProvider {
+export function createOpenAIProvider(config?: { baseUrl?: string }): LLMProvider {
   const id = "openai" as const;
   const displayName = "OpenAI";
+  const customBaseUrl = config?.baseUrl;
 
   async function generate(options: LLMGenerateOptions): Promise<LLMResponse> {
     const env = getServerEnvOrNull();
     const apiKey = env?.OPENAI_API_KEY;
     if (!env || !apiKey) throw new Error("OPENAI_API_KEY is not configured.");
 
-    const baseUrl = env.OPENAI_BASE_URL || "https://api.openai.com";
+    const baseUrl = customBaseUrl || env.OPENAI_BASE_URL || "https://api.openai.com";
 
     const response = await fetch(`${baseUrl}/v1/chat/completions`, {
       method: "POST",
@@ -69,7 +70,7 @@ export function createOpenAIProvider(): LLMProvider {
       return;
     }
 
-    const baseUrl = env.OPENAI_BASE_URL || "https://api.openai.com";
+    const baseUrl = customBaseUrl || env.OPENAI_BASE_URL || "https://api.openai.com";
 
     const response = await fetch(`${baseUrl}/v1/chat/completions`, {
       method: "POST",

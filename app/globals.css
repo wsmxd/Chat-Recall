@@ -352,6 +352,30 @@ select {
   border-color: var(--accent);
 }
 
+.chat-reasoning {
+  margin-bottom: 8px;
+  font-size: 0.82rem;
+}
+
+.chat-reasoning summary {
+  color: var(--accent);
+  cursor: pointer;
+  user-select: none;
+}
+
+.chat-reasoning-content {
+  margin-top: 6px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--muted);
+  white-space: pre-wrap;
+  line-height: 1.5;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
 .chat-error {
   margin: 0 24px;
   padding: 10px 14px;

@@ -7,16 +7,18 @@ const providers: Partial<Record<string, () => Promise<LLMProvider>>> = {
   deepseek: () => import("@/lib/llm/providers/deepseek").then((m) => m.createDeepSeekProvider()),
   openai: () => import("@/lib/llm/providers/openai").then((m) => m.createOpenAIProvider()),
   anthropic: () => import("@/lib/llm/providers/anthropic").then((m) => m.createAnthropicProvider()),
-  openrouter: () => import("@/lib/llm/providers/openrouter").then((m) => m.createOpenRouterProvider())
+  openrouter: () => import("@/lib/llm/providers/openrouter").then((m) => m.createOpenRouterProvider()),
+  kimi: () => import("@/lib/llm/providers/openai").then((m) => m.createOpenAIProvider({ baseUrl: "https://api.moonshot.cn" })),
+  qwen: () => import("@/lib/llm/providers/openai").then((m) => m.createOpenAIProvider({ baseUrl: "https://dashscope.aliyuncs.com/compatible-mode/v1" })),
+  glm: () => import("@/lib/llm/providers/openai").then((m) => m.createOpenAIProvider({ baseUrl: "https://open.bigmodel.cn/api/paas/v4" }))
 };
 
 export async function createProvider(providerId: string): Promise<LLMProvider> {
   const factory = providers[providerId];
   if (factory) return factory();
 
-  // Fallback to DeepSeek if unknown provider
-  const fallback = providers.deepseek!;
-  return fallback();
+  // Try as OpenAI-compatible with custom base URL
+  return import("@/lib/llm/providers/openai").then((m) => m.createOpenAIProvider());
 }
 
 export function resolveProviderId(userConfigProvider?: string): string {
@@ -36,9 +38,12 @@ export function resolveProviderId(userConfigProvider?: string): string {
 
 export function getAvailableProviders(): Array<{ id: string; name: string; models: string[] }> {
   return [
-    { id: "deepseek", name: "DeepSeek", models: ["deepseek-chat", "deepseek-reasoner"] },
+    { id: "deepseek", name: "DeepSeek", models: ["deepseek-v4-flash", "deepseek-v4-pro", "deepseek-chat", "deepseek-reasoner"] },
     { id: "openai", name: "OpenAI", models: ["gpt-4o", "gpt-4o-mini", "gpt-4.1"] },
     { id: "anthropic", name: "Anthropic", models: ["claude-sonnet-4-20250514", "claude-3-5-haiku-20241022"] },
-    { id: "openrouter", name: "OpenRouter", models: ["openai/gpt-4o", "anthropic/claude-sonnet-4", "google/gemini-2.5-pro", "deepseek/deepseek-chat"] }
+    { id: "openrouter", name: "OpenRouter", models: ["openai/gpt-4o", "anthropic/claude-sonnet-4", "google/gemini-2.5-pro", "deepseek/deepseek-chat"] },
+    { id: "kimi", name: "Kimi (Moonshot)", models: ["moonshot-v1-128k", "moonshot-v1-32k", "kimi-latest"] },
+    { id: "qwen", name: "Qwen (Tongyi)", models: ["qwen-max", "qwen-plus", "qwen-turbo"] },
+    { id: "glm", name: "GLM (Zhipu)", models: ["glm-4-plus", "glm-4-flash", "glm-4-air"] }
   ];
 }

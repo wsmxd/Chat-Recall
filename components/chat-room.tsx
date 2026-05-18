@@ -91,6 +91,8 @@ export function ChatRoom({
   const inputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const assistantMsgRef = useRef<string>("");
+  const reasoningRef = useRef<string>("");
+  const [reasoningMsgs, setReasoningMsgs] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (hydrated) {
@@ -125,6 +127,8 @@ export function ChatRoom({
       const controller = new AbortController();
       abortRef.current = controller;
       assistantMsgRef.current = "";
+      reasoningRef.current = "";
+      const streamMsgId = "streaming";
 
       await streamChat({
         characterSlug: character.slug,
@@ -154,6 +158,10 @@ export function ChatRoom({
             ];
           });
         },
+        onReasoning: (token) => {
+          reasoningRef.current += token;
+          setReasoningMsgs((prev) => ({ ...prev, [streamMsgId]: reasoningRef.current }));
+        },
         onError: (err) => {
           setError(err);
           setMessages((prev) => {
@@ -168,6 +176,8 @@ export function ChatRoom({
           if (result.conversationId) {
             setConversationId(result.conversationId);
           }
+          setReasoningMsgs((prev) => ({ ...prev, [streamMsgId]: reasoningRef.current }));
+          reasoningRef.current = "";
           setMessages((prev) =>
             prev.map((m) =>
               m.id === "streaming"
@@ -248,6 +258,12 @@ export function ChatRoom({
             <div className="chat-message-role">
               {msg.role === "user" ? "You" : character.name}
             </div>
+            {reasoningMsgs[msg.id] && (
+              <details className="chat-reasoning">
+                <summary>Thinking</summary>
+                <div className="chat-reasoning-content">{reasoningMsgs[msg.id]}</div>
+              </details>
+            )}
             <div className="chat-message-content">{msg.content}</div>
           </div>
         ))}

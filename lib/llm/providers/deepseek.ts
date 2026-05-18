@@ -20,6 +20,24 @@ function parseSSELine(line: string): Record<string, unknown> | null {
   }
 }
 
+function buildRequestBody(options: LLMGenerateOptions): Record<string, unknown> {
+  const body: Record<string, unknown> = {
+    model: options.model,
+    messages: options.messages,
+    temperature: options.temperature,
+    max_tokens: options.maxTokens,
+    stream: options.stream ?? false
+  };
+
+  // Add reasoning/thinking support for v4 models
+  if (options.reasoningEffort) {
+    body.reasoning_effort = options.reasoningEffort;
+    body.extra_body = { thinking: { type: "enabled" } };
+  }
+
+  return body;
+}
+
 export function createDeepSeekProvider(): LLMProvider {
   const id = "deepseek" as const;
   const displayName = "DeepSeek";
@@ -31,29 +49,26 @@ export function createDeepSeekProvider(): LLMProvider {
       throw new Error("DEEPSEEK_API_KEY is not configured.");
     }
 
+    const body = buildRequestBody({ ...options, stream: false });
+
     const response = await fetch(`${env.DEEPSEEK_BASE_URL}/v1/chat/completions`, {
       method: "POST",
       headers: buildHeaders(apiKey),
-      body: JSON.stringify({
-        model: options.model || env.DEFAULT_LLM_MODEL,
-        messages: options.messages,
-        temperature: options.temperature,
-        max_tokens: options.maxTokens,
-        stream: false
-      }),
+      body: JSON.stringify(body),
       signal: AbortSignal.timeout(90_000)
     });
 
     if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`DeepSeek API error ${response.status}: ${errorText}`);
+      throw new Error(`DeepSeek API error ${response.status}`);
     }
 
     const data = await response.json();
     const choice = data.choices?.[0];
+    const msg = choice?.message;
 
     return {
-      content: choice?.message?.content ?? "",
+      content: msg?.content ?? "",
+      reasoningContent: msg?.reasoning_content,
       model: data.model ?? options.model,
       provider: id,
       usage: data.usage
@@ -66,9 +81,7 @@ export function createDeepSeekProvider(): LLMProvider {
     };
   }
 
-  async function* stream(
-    options: LLMGenerateOptions
-  ): AsyncIterable<LLMStreamEvent> {
+  async function* stream(options: LLMGenerateOptions): AsyncIterable<LLMStreamEvent> {
     const env = getServerEnvOrNull();
     const apiKey = env?.DEEPSEEK_API_KEY;
     if (!env || !apiKey) {
@@ -76,22 +89,17 @@ export function createDeepSeekProvider(): LLMProvider {
       return;
     }
 
+    const body = buildRequestBody({ ...options, stream: true });
+
     const response = await fetch(`${env.DEEPSEEK_BASE_URL}/v1/chat/completions`, {
       method: "POST",
       headers: buildHeaders(apiKey),
-      body: JSON.stringify({
-        model: options.model || env.DEFAULT_LLM_MODEL,
-        messages: options.messages,
-        temperature: options.temperature,
-        max_tokens: options.maxTokens,
-        stream: true
-      }),
+      body: JSON.stringify(body),
       signal: AbortSignal.timeout(120_000)
     });
 
     if (!response.ok) {
-      const errorText = await response.text();
-      yield { type: "error", error: new Error(`DeepSeek API error ${response.status}: ${errorText}`) };
+      yield { type: "error", error: new Error(`DeepSeek API error ${response.status}`) };
       return;
     }
 
@@ -104,6 +112,7 @@ export function createDeepSeekProvider(): LLMProvider {
     const decoder = new TextDecoder();
     let buffer = "";
     let fullContent = "";
+    let fullReasoning = "";
     let usage: LLMResponse["usage"];
 
     try {
@@ -123,6 +132,12 @@ export function createDeepSeekProvider(): LLMProvider {
           if (!choice) continue;
 
           const delta = choice.delta as Record<string, string> | undefined;
+
+          if (delta?.reasoning_content) {
+            fullReasoning += delta.reasoning_content;
+            yield { type: "reasoning", value: delta.reasoning_content };
+          }
+
           if (delta?.content) {
             fullContent += delta.content;
             yield { type: "token", value: delta.content };
@@ -149,6 +164,7 @@ export function createDeepSeekProvider(): LLMProvider {
       type: "done",
       response: {
         content: fullContent,
+        reasoningContent: fullReasoning || undefined,
         model: options.model,
         provider: id,
         usage

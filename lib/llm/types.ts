@@ -1,4 +1,4 @@
-export type LLMProviderId = "deepseek" | "openai" | "anthropic" | "google" | "openrouter" | "local";
+export type LLMProviderId = "deepseek" | "openai" | "anthropic" | "google" | "openrouter" | "local" | "custom-openai";
 
 export type LLMMessage = {
   role: "system" | "user" | "assistant" | "tool";
@@ -11,11 +11,13 @@ export type LLMGenerateOptions = {
   temperature?: number;
   maxTokens?: number;
   stream?: boolean;
+  reasoningEffort?: "low" | "medium" | "high";
   metadata?: Record<string, unknown>;
 };
 
 export type LLMResponse = {
   content: string;
+  reasoningContent?: string;
   model: string;
   provider: LLMProviderId;
   usage?: {
@@ -27,6 +29,7 @@ export type LLMResponse = {
 
 export type LLMStreamEvent =
   | { type: "token"; value: string }
+  | { type: "reasoning"; value: string }
   | { type: "metadata"; value: Record<string, unknown> }
   | { type: "done"; response?: LLMResponse }
   | { type: "error"; error: Error };
