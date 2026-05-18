@@ -7,6 +7,7 @@ import { retrieveRelevantChunks } from "@/lib/rag/retrievers/vector-retriever";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { ensureProfile } from "@/lib/auth/server";
 import { getPinnedFacts, type MemoryEntry } from "@/lib/memories/queries";
+import { getUserDefaultProvider } from "@/lib/chat/provider-config";
 import { safeError } from "@/lib/api/errors";
 import { z } from "zod";
 
@@ -147,6 +148,13 @@ export async function POST(request: Request) {
       memories: activeMemories.length > 0 ? activeMemories : undefined
     });
 
+    // Resolve model: request param > user DB default > env default
+    let resolvedModel = model ?? "deepseek-chat";
+    if (!model && userId) {
+      const userConfig = await getUserDefaultProvider(userId);
+      if (userConfig) resolvedModel = userConfig.model;
+    }
+
     const provider = createDeepSeekProvider();
     let assistantContent = "";
     const citations = loreContext.map((chunk) => ({
@@ -161,7 +169,7 @@ export async function POST(request: Request) {
       async start(controller) {
         try {
           for await (const event of provider.stream({
-            model: model ?? "deepseek-chat",
+            model: resolvedModel,
             messages: llmMessages,
             temperature: character.card.model.temperature
           })) {

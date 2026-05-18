@@ -1,4 +1,5 @@
 import { AppShell } from "@/components/app-shell";
+import { ModelSelector } from "@/components/model-selector";
 
 export default function SettingsPage() {
   return (
@@ -7,15 +8,11 @@ export default function SettingsPage() {
         <header className="page-header">
           <h1>Settings</h1>
           <p>
-            Provider configuration is managed through environment variables.
-            See <a href="/docs/SELF_HOSTING.md" style={{ color: "var(--accent)" }}>the self-hosting guide</a> for details.
+            Configure your chat model and view provider information.
           </p>
         </header>
         <section className="grid">
-          <article className="card">
-            <h2>LLM Provider</h2>
-            <p>DeepSeek is configured as the default chat provider.</p>
-          </article>
+          <ModelSelector />
           <article className="card">
             <h2>Embedding Provider</h2>
             <p>Tongyi/DashScope is configured for RAG embeddings (768 dimensions).</p>

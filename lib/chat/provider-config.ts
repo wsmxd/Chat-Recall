@@ -1,0 +1,79 @@
+import { createSupabaseServerClient } from "@/lib/supabase/server";
+
+export interface ProviderConfig {
+  id: string;
+  ownerId: string | null;
+  provider: string;
+  model: string;
+  settings: Record<string, unknown>;
+  isDefault: boolean;
+}
+
+export async function getUserDefaultProvider(
+  userId: string
+): Promise<ProviderConfig | null> {
+  const supabase = await createSupabaseServerClient();
+  if (!supabase) return null;
+
+  const { data, error } = await supabase
+    .from("provider_configs")
+    .select("*")
+    .eq("owner_id", userId)
+    .eq("is_default", true)
+    .maybeSingle();
+
+  if (error || !data) return null;
+
+  return {
+    id: data.id,
+    ownerId: data.owner_id,
+    provider: data.provider,
+    model: data.model,
+    settings: data.settings as Record<string, unknown>,
+    isDefault: data.is_default
+  };
+}
+
+export async function setDefaultProvider(
+  userId: string,
+  provider: string,
+  model: string,
+  settings?: Record<string, unknown>
+): Promise<ProviderConfig | null> {
+  const supabase = await createSupabaseServerClient();
+  if (!supabase) return null;
+
+  // Unset any existing default
+  await supabase
+    .from("provider_configs")
+    .update({ is_default: false })
+    .eq("owner_id", userId)
+    .eq("is_default", true);
+
+  // Upsert the new default
+  const { data, error } = await supabase
+    .from("provider_configs")
+    .upsert(
+      {
+        owner_id: userId,
+        provider,
+        model,
+        settings: (settings ?? {}) as never,
+        is_default: true
+      },
+      { onConflict: "owner_id,provider,model" }
+    )
+    .select()
+    .single();
+
+  if (error || !data) return null;
+
+  return {
+    id: data.id,
+    ownerId: data.owner_id,
+    provider: data.provider,
+    model: data.model,
+    settings: data.settings as Record<string, unknown>,
+    isDefault: data.is_default
+  };
+}
