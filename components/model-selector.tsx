@@ -3,6 +3,20 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/components/auth-provider";
 
+const providerModels: Record<string, string[]> = {
+  deepseek: ["deepseek-chat", "deepseek-reasoner"],
+  openai: ["gpt-4o", "gpt-4o-mini", "gpt-4.1"],
+  anthropic: ["claude-sonnet-4-20250514", "claude-3-5-haiku-20241022"],
+  openrouter: ["openai/gpt-4o", "anthropic/claude-sonnet-4", "google/gemini-2.5-pro", "deepseek/deepseek-chat"]
+};
+
+const providerNames: Record<string, string> = {
+  deepseek: "DeepSeek",
+  openai: "OpenAI",
+  anthropic: "Anthropic",
+  openrouter: "OpenRouter"
+};
+
 export function ModelSelector() {
   const { user } = useAuth();
   const [provider, setProvider] = useState("deepseek");
@@ -23,6 +37,11 @@ export function ModelSelector() {
       .catch(() => {});
   }, [user]);
 
+  const handleProviderChange = (p: string) => {
+    setProvider(p);
+    setModel(providerModels[p]?.[0] ?? "");
+  };
+
   const handleSave = async () => {
     if (!user) return;
     setLoading(true);
@@ -41,15 +60,17 @@ export function ModelSelector() {
   return (
     <article className="card">
       <h2>Chat Model</h2>
-      <p>Select the LLM provider and model for your chats.</p>
+      <p>Select the LLM provider and model. Requires the corresponding API key.</p>
       <label className="editor-label">
         Provider
         <select
           className="editor-select"
           value={provider}
-          onChange={(e) => setProvider(e.target.value)}
+          onChange={(e) => handleProviderChange(e.target.value)}
         >
-          <option value="deepseek">DeepSeek</option>
+          {Object.entries(providerNames).map(([id, name]) => (
+            <option key={id} value={id}>{name}</option>
+          ))}
         </select>
       </label>
       <label className="editor-label">
@@ -59,8 +80,9 @@ export function ModelSelector() {
           value={model}
           onChange={(e) => setModel(e.target.value)}
         >
-          <option value="deepseek-chat">deepseek-chat</option>
-          <option value="deepseek-reasoner">deepseek-reasoner (R1)</option>
+          {(providerModels[provider] ?? []).map((m) => (
+            <option key={m} value={m}>{m}</option>
+          ))}
         </select>
       </label>
       <div className="button-row" style={{ marginTop: "8px" }}>

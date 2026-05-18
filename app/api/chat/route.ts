@@ -2,7 +2,7 @@ import { getPublicCharacterBySlug, getSupabaseCharacterIdBySlug } from "@/lib/ch
 import { buildChatPrompt, buildGroupChatPrompt, buildSceneDirectorPrompt } from "@/lib/chat/prompt-builder";
 import type { LoreChunk } from "@/lib/rag/types";
 import { createConversation, saveMessage } from "@/lib/chat/conversations";
-import { createDeepSeekProvider } from "@/lib/llm/providers/deepseek";
+import { createProvider } from "@/lib/llm/factory";
 import { retrieveRelevantChunks } from "@/lib/rag/retrievers/vector-retriever";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { ensureProfile } from "@/lib/auth/server";
@@ -178,14 +178,18 @@ export async function POST(request: Request) {
       });
     }
 
-    // Resolve model: request param > user DB default > env default
+    // Resolve provider and model
     let resolvedModel = model ?? "deepseek-chat";
+    let providerId = "deepseek";
     if (!model && userId) {
       const userConfig = await getUserDefaultProvider(userId);
-      if (userConfig) resolvedModel = userConfig.model;
+      if (userConfig) {
+        resolvedModel = userConfig.model;
+        providerId = userConfig.provider;
+      }
     }
 
-    const provider = createDeepSeekProvider();
+    const provider = await createProvider(providerId);
     let assistantContent = "";
     const citations = loreContext.map((chunk) => ({
       chunkId: chunk.chunkId,
