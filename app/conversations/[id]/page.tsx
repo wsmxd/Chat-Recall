@@ -6,6 +6,7 @@ import { getPublicCharacterBySlug } from "@/lib/characters/queries";
 import { ChatRoom } from "@/components/chat-room";
 import { AuthStatus } from "@/components/auth-status";
 import { ThemeStyle } from "@/components/theme-style";
+import { ErrorBoundary } from "@/components/error-boundary";
 
 type ConversationPageProps = {
   params: Promise<{ id: string }>;
@@ -50,11 +51,13 @@ export default async function ConversationPage({ params }: ConversationPageProps
         <AuthStatus />
       </aside>
       <div className="app-content">
-        <ChatRoom
-          character={character}
-          initialConversationId={id}
-          initialMessages={messages}
-        />
+        <ErrorBoundary>
+          <ChatRoom
+            character={character}
+            initialConversationId={id}
+            initialMessages={messages}
+          />
+        </ErrorBoundary>
       </div>
     </div>
   );

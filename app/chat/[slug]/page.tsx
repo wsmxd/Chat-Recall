@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getPublicCharacterBySlug } from "@/lib/characters/queries";
 import { ChatRoom } from "@/components/chat-room";
 import { ThemeStyle } from "@/components/theme-style";
+import { ErrorBoundary } from "@/components/error-boundary";
 
 type ChatPageProps = {
   params: Promise<{
@@ -39,7 +40,9 @@ export default async function ChatPage({ params }: ChatPageProps) {
         </nav>
       </aside>
       <div className="app-content">
-        <ChatRoom character={character} />
+        <ErrorBoundary>
+          <ChatRoom character={character} />
+        </ErrorBoundary>
       </div>
     </div>
   );
