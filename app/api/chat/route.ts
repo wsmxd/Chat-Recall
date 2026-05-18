@@ -85,7 +85,7 @@ export async function POST(request: Request) {
       if (!activeConversationId) {
         const created = await createConversation({
           userId,
-          characterId: characterId ?? "",
+          characterId: characterId ?? undefined,
           title: character.name
         });
         if (created) activeConversationId = created;

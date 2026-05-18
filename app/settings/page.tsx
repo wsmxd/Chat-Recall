@@ -8,7 +8,7 @@ export default function SettingsPage() {
           <h1>Settings</h1>
           <p>
             Provider configuration is managed through environment variables.
-            See <a href="https://github.com/anomalyco/chat-recall/blob/main/docs/SELF_HOSTING.md" style={{ color: "var(--accent)" }}>the self-hosting guide</a> for details.
+            See <a href="/docs/SELF_HOSTING.md" style={{ color: "var(--accent)" }}>the self-hosting guide</a> for details.
           </p>
         </header>
         <section className="grid">

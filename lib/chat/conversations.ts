@@ -15,7 +15,7 @@ export interface ConversationSummary {
 
 export async function createConversation(params: {
   userId: string;
-  characterId: string;
+  characterId?: string;
   title?: string;
 }): Promise<string | null> {
   const supabase = await createSupabaseServerClient();
@@ -26,7 +26,7 @@ export async function createConversation(params: {
     .insert({
       owner_id: params.userId,
       title: params.title ?? null,
-      character_ids: [params.characterId],
+      character_ids: params.characterId ? [params.characterId] : [],
       mode: "single_character"
     })
     .select("id")

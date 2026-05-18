@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { AppShell } from "@/components/app-shell";
 import { getPublicCharacterBySlug, listPublicCharacters } from "@/lib/characters/queries";
 import { getSession } from "@/lib/auth/server";
+import { listUserCharacters } from "@/lib/characters/mutations";
 import { CharacterActions } from "@/components/character-actions";
 
 type CharacterPageProps = {
@@ -27,6 +28,9 @@ export default async function CharacterPage({ params }: CharacterPageProps) {
   if (!character) {
     notFound();
   }
+
+  const userCharacters = user ? await listUserCharacters(user.id) : [];
+  const isOwner = userCharacters.some((c) => c.slug === slug);
 
   const card = character.card;
 
@@ -114,7 +118,7 @@ export default async function CharacterPage({ params }: CharacterPageProps) {
           <Link className="button" href={`/chat/${character.slug}`}>
             Start chat
           </Link>
-          {user && (
+          {isOwner && (
             <Link className="button secondary" href={`/characters/${character.slug}/edit`}>
               Edit
             </Link>
