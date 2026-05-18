@@ -133,6 +133,18 @@ export function MemoryPanel({ conversationId, characterName }: MemoryPanelProps)
     if (response.ok) fetchMemories();
   };
 
+  const handleApproveAll = async () => {
+    const pending = memories.filter((m) => !m.pinned);
+    for (const m of pending) {
+      await fetch("/api/memories", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: m.id, pinned: true })
+      });
+    }
+    fetchMemories();
+  };
+
   const handleDelete = async (id: string) => {
     const response = await fetch(`/api/memories?id=${id}`, { method: "DELETE" });
     if (response.ok) fetchMemories();
@@ -231,75 +243,160 @@ export function MemoryPanel({ conversationId, characterName }: MemoryPanelProps)
           No memories yet. They will be extracted from conversations automatically, or you can add them manually.
         </p>
       ) : (
-        <div className="memory-list">
-          {memories.map((memory) => (
-            <div
-              key={memory.id}
-              className={`memory-item ${memory.pinned ? "pinned" : ""}`}
-            >
-              <div className="memory-item-header">
-                <span
-                  className="memory-type-badge"
-                  style={{ borderColor: typeColors[memory.type], color: typeColors[memory.type] }}
-                >
-                  {memory.type}
-                </span>
-                <span className="memory-confidence">
-                  {Math.round(memory.confidence * 100)}%
-                </span>
-                {memory.pinned && <span className="memory-pinned-badge">Pinned</span>}
-              </div>
+        <>
+          {(() => {
+            const pending = memories.filter((m) => !m.pinned);
+            const approved = memories.filter((m) => m.pinned);
 
-              {editing === memory.id ? (
-                <div className="memory-edit-form">
-                  <textarea
-                    className="editor-textarea"
-                    value={editContent}
-                    onChange={(e) => setEditContent(e.target.value)}
-                    rows={3}
-                  />
-                  <div className="button-row">
-                    <button className="button" onClick={() => handleUpdate(memory.id)} type="button">
-                      Save
-                    </button>
-                    <button className="button secondary" onClick={() => setEditing(null)} type="button">
-                      Cancel
-                    </button>
+            return (
+              <>
+                {pending.length > 0 && (
+                  <div>
+                    <div className="memory-section-header">
+                      <h3>Needs Review ({pending.length})</h3>
+                      {pending.length > 1 && (
+                        <button className="button secondary" onClick={handleApproveAll} type="button">
+                          Approve All
+                        </button>
+                      )}
+                    </div>
+                    <div className="memory-list">
+                      {pending.map((memory) => (
+                        <div key={memory.id} className="memory-item">
+                          <div className="memory-item-header">
+                            <span
+                              className="memory-type-badge"
+                              style={{ borderColor: typeColors[memory.type], color: typeColors[memory.type] }}
+                            >
+                              {memory.type}
+                            </span>
+                            <span className={`memory-confidence ${memory.confidence < 0.7 ? "low" : ""}`}>
+                              {Math.round(memory.confidence * 100)}%
+                            </span>
+                          </div>
+
+                          {editing === memory.id ? (
+                            <div className="memory-edit-form">
+                              <textarea
+                                className="editor-textarea"
+                                value={editContent}
+                                onChange={(e) => setEditContent(e.target.value)}
+                                rows={3}
+                              />
+                              <div className="button-row">
+                                <button className="button" onClick={() => handleUpdate(memory.id)} type="button">
+                                  Save
+                                </button>
+                                <button className="button secondary" onClick={() => setEditing(null)} type="button">
+                                  Cancel
+                                </button>
+                              </div>
+                            </div>
+                          ) : (
+                            <p className="memory-content">{memory.content}</p>
+                          )}
+
+                          <div className="memory-actions">
+                            <button
+                              className="memory-action-btn"
+                              onClick={() => { setEditing(memory.id); setEditContent(memory.content); }}
+                              type="button"
+                            >
+                              Edit
+                            </button>
+                            <button
+                              className="memory-action-btn"
+                              onClick={() => handlePin(memory.id, true)}
+                              type="button"
+                            >
+                              Approve
+                            </button>
+                            <button
+                              className="memory-action-btn delete"
+                              onClick={() => handleDelete(memory.id)}
+                              type="button"
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              ) : (
-                <p className="memory-content">{memory.content}</p>
-              )}
+                )}
 
-              <div className="memory-actions">
-                <button
-                  className="memory-action-btn"
-                  onClick={() => {
-                    setEditing(memory.id);
-                    setEditContent(memory.content);
-                  }}
-                  type="button"
-                >
-                  Edit
-                </button>
-                <button
-                  className="memory-action-btn"
-                  onClick={() => handlePin(memory.id, !memory.pinned)}
-                  type="button"
-                >
-                  {memory.pinned ? "Unpin" : "Pin"}
-                </button>
-                <button
-                  className="memory-action-btn delete"
-                  onClick={() => handleDelete(memory.id)}
-                  type="button"
-                >
-                  Delete
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
+                {approved.length > 0 && (
+                  <div style={{ marginTop: pending.length > 0 ? "24px" : 0 }}>
+                    <h3 className="memory-section-title">Approved ({approved.length})</h3>
+                    <div className="memory-list">
+                      {approved.map((memory) => (
+                        <div key={memory.id} className="memory-item pinned">
+                          <div className="memory-item-header">
+                            <span
+                              className="memory-type-badge"
+                              style={{ borderColor: typeColors[memory.type], color: typeColors[memory.type] }}
+                            >
+                              {memory.type}
+                            </span>
+                            <span className="memory-confidence">
+                              {Math.round(memory.confidence * 100)}%
+                            </span>
+                            <span className="memory-pinned-badge">Pinned</span>
+                          </div>
+
+                          {editing === memory.id ? (
+                            <div className="memory-edit-form">
+                              <textarea
+                                className="editor-textarea"
+                                value={editContent}
+                                onChange={(e) => setEditContent(e.target.value)}
+                                rows={3}
+                              />
+                              <div className="button-row">
+                                <button className="button" onClick={() => handleUpdate(memory.id)} type="button">
+                                  Save
+                                </button>
+                                <button className="button secondary" onClick={() => setEditing(null)} type="button">
+                                  Cancel
+                                </button>
+                              </div>
+                            </div>
+                          ) : (
+                            <p className="memory-content">{memory.content}</p>
+                          )}
+
+                          <div className="memory-actions">
+                            <button
+                              className="memory-action-btn"
+                              onClick={() => { setEditing(memory.id); setEditContent(memory.content); }}
+                              type="button"
+                            >
+                              Edit
+                            </button>
+                            <button
+                              className="memory-action-btn"
+                              onClick={() => handlePin(memory.id, false)}
+                              type="button"
+                            >
+                              Unpin
+                            </button>
+                            <button
+                              className="memory-action-btn delete"
+                              onClick={() => handleDelete(memory.id)}
+                              type="button"
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </>
+            );
+          })()}
+        </>
       )}
     </div>
   );

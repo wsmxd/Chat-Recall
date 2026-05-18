@@ -793,6 +793,28 @@ select {
   color: #d65b5b;
 }
 
+.memory-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.memory-section-header h3 {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--accent);
+}
+
+.memory-section-title {
+  font-size: 1rem;
+  margin: 0 0 12px;
+}
+
+.memory-confidence.low {
+  color: #d68a6a;
+}
+
 /* ---- Responsive ---- */
 
 @media (max-width: 760px) {
