@@ -1,4 +1,4 @@
-export type LLMProviderId = "deepseek" | "openai" | "anthropic" | "google" | "openrouter" | "local" | "custom-openai";
+export type LLMProviderId = "deepseek" | "openai" | "anthropic" | "openrouter" | "kimi" | "qwen" | "glm" | "google" | "local" | "custom-openai";
 
 export type LLMMessage = {
   role: "system" | "user" | "assistant" | "tool";
@@ -40,4 +40,3 @@ export interface LLMProvider {
   generate(options: LLMGenerateOptions): Promise<LLMResponse>;
   stream(options: LLMGenerateOptions): AsyncIterable<LLMStreamEvent>;
 }
-

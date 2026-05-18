@@ -9,6 +9,7 @@ import { ensureProfile } from "@/lib/auth/server";
 import { getPinnedFacts, type MemoryEntry } from "@/lib/memories/queries";
 import { getUserDefaultProvider } from "@/lib/chat/provider-config";
 import { safeError } from "@/lib/api/errors";
+import { getServerEnvOrNull } from "@/lib/env";
 import { z } from "zod";
 
 const chatRequestSchema = z.object({
@@ -53,11 +54,36 @@ export async function POST(request: Request) {
     }
 
     const { characterSlug, conversationId, messages, model, mode, characterSlugs, sceneParams } = parsed.data;
+    const requestedSlugs = Array.from(new Set(characterSlugs?.length ? characterSlugs : [characterSlug]));
+
+    if ((mode === "group" || mode === "scene") && !requestedSlugs.includes(characterSlug)) {
+      return new Response(JSON.stringify({ error: "characterSlugs must include characterSlug" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" }
+      });
+    }
+
+    if (mode === "group" && requestedSlugs.length < 2) {
+      return new Response(JSON.stringify({ error: "Group chat requires at least 2 characters" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" }
+      });
+    }
 
     const character = await getPublicCharacterBySlug(characterSlug);
     if (!character) {
       return new Response(JSON.stringify({ error: "Character not found" }), {
         status: 404,
+        headers: { "Content-Type": "application/json" }
+      });
+    }
+
+    const allCharacters = (await Promise.all(requestedSlugs.map((s) => getPublicCharacterBySlug(s))))
+      .filter((c): c is NonNullable<typeof c> => c !== null);
+
+    if ((mode === "group" || mode === "scene") && allCharacters.length !== requestedSlugs.length) {
+      return new Response(JSON.stringify({ error: "One or more characters were not found" }), {
+        status: 400,
         headers: { "Content-Type": "application/json" }
       });
     }
@@ -88,13 +114,21 @@ export async function POST(request: Request) {
     if (userId) {
       await ensureProfile(userId, supabase ?? undefined);
 
-      // Resolve character UUID
-      const characterId = await getSupabaseCharacterIdBySlug(characterSlug);
+      const characterIds = (await Promise.all(requestedSlugs.map((slug) => getSupabaseCharacterIdBySlug(slug))))
+        .filter((id): id is string => Boolean(id));
+      const characterId = characterIds[0] ?? null;
 
       if (!activeConversationId) {
         const created = await createConversation({
           userId,
           characterId: characterId ?? undefined,
+          characterIds,
+          characterSlug: character.slug,
+          characterName: character.name,
+          characterSlugs: requestedSlugs,
+          characterNames: allCharacters.map((c) => c.name),
+          mode,
+          sceneParams,
           title: character.name
         });
         if (created) activeConversationId = created;
@@ -151,10 +185,6 @@ export async function POST(request: Request) {
 
     // Build prompt based on mode
     let llmMessages;
-    const allSlugs = characterSlugs?.length ? characterSlugs : [characterSlug];
-    const allCharacters = (await Promise.all(allSlugs.map((s) => getPublicCharacterBySlug(s))))
-      .filter((c): c is NonNullable<typeof c> => c !== null);
-
     if (mode === "group" && allCharacters.length > 1) {
       llmMessages = buildGroupChatPrompt({
         characters: allCharacters,
@@ -179,8 +209,9 @@ export async function POST(request: Request) {
     }
 
     // Resolve provider and model
-    let resolvedModel = model ?? "deepseek-chat";
-    let providerId = "deepseek";
+    const env = getServerEnvOrNull();
+    let resolvedModel = model ?? env?.DEFAULT_LLM_MODEL ?? "deepseek-chat";
+    let providerId = env?.DEFAULT_LLM_PROVIDER ?? "deepseek";
     if (!model && userId) {
       const userConfig = supabase ? await getUserDefaultProvider(supabase, userId) : null;
       if (userConfig) {
@@ -217,7 +248,7 @@ export async function POST(request: Request) {
               controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: "token", value: event.value })}\n\n`));
             } else if (event.type === "error") {
               controller.enqueue(
-                encoder.encode(`data: ${JSON.stringify({ type: "error", error: safeError(event.error) })}\n\n`)
+                encoder.encode(`data: ${JSON.stringify({ type: "error", error: safeError(event.error), conversationId: activeConversationId })}\n\n`)
               );
             } else if (event.type === "done") {
               // Save assistant message if authenticated

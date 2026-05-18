@@ -33,9 +33,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: `Invalid bucket. Allowed: ${ALLOWED_BUCKETS.join(", ")}` }, { status: 400 });
     }
 
-    const url = await uploadToStorage(bucket, file, userData.user.id);
+    const upload = await uploadToStorage(bucket, file, userData.user.id);
 
-    return NextResponse.json({ url }, { status: 201 });
+    return NextResponse.json(upload, { status: 201 });
   } catch (error) {
     return NextResponse.json({ error: safeError(error) }, { status: 500 });
   }

@@ -20,9 +20,9 @@ function parseSSELine(line: string): Record<string, unknown> | null {
   }
 }
 
-export function createOpenAIProvider(config?: { baseUrl?: string; apiKeyEnv?: string }): LLMProvider {
-  const id = "openai" as const;
-  const displayName = "OpenAI";
+export function createOpenAIProvider(config?: { baseUrl?: string; apiKeyEnv?: string; id?: LLMProvider["id"]; displayName?: string }): LLMProvider {
+  const id = config?.id ?? "openai";
+  const displayName = config?.displayName ?? "OpenAI";
   const customBaseUrl = config?.baseUrl;
   const keyEnv = config?.apiKeyEnv ?? "OPENAI_API_KEY";
 

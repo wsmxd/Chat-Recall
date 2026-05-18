@@ -31,7 +31,8 @@ export function GroupChatSetup({ characters }: GroupChatSetupProps) {
   };
 
   const handleStart = () => {
-    if (selected.length === 0) return;
+    if (mode === "group" && selected.length < 2) return;
+    if (mode === "scene" && selected.length === 0) return;
     const slugs = selected.join(",");
     const searchParams = new URLSearchParams();
     searchParams.set("mode", mode);
@@ -146,7 +147,7 @@ export function GroupChatSetup({ characters }: GroupChatSetupProps) {
         <button
           className="button"
           onClick={handleStart}
-          disabled={selected.length === 0}
+          disabled={mode === "group" ? selected.length < 2 : selected.length === 0}
           type="button"
         >
           Start {mode === "scene" ? "Scene" : "Group Chat"} ({selected.length} characters)

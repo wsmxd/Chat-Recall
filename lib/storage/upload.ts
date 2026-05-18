@@ -14,6 +14,14 @@ const ALLOWED_TYPES: Record<StorageBucket, string[]> = {
   lore: ["text/plain", "text/markdown", "application/json", "text/csv"]
 };
 
+const EXTENSION_TYPES: Record<string, string> = {
+  txt: "text/plain",
+  md: "text/markdown",
+  markdown: "text/markdown",
+  json: "application/json",
+  csv: "text/csv"
+};
+
 export function validateFile(file: File, bucket: StorageBucket): string | null {
   const max = MAX_FILE_SIZE[bucket];
   if (file.size > max) {
@@ -21,7 +29,9 @@ export function validateFile(file: File, bucket: StorageBucket): string | null {
   }
 
   const allowed = ALLOWED_TYPES[bucket];
-  if (!allowed.includes(file.type)) {
+  const ext = file.name.split(".").pop()?.toLowerCase() ?? "";
+  const inferredType = EXTENSION_TYPES[ext];
+  if (!allowed.includes(file.type) && (!inferredType || !allowed.includes(inferredType))) {
     return `Unsupported file type: ${file.type}. Allowed: ${allowed.join(", ")}`;
   }
 
@@ -32,7 +42,7 @@ export async function uploadToStorage(
   bucket: StorageBucket,
   file: File,
   ownerId: string
-): Promise<string | null> {
+): Promise<{ path: string; url: string | null }> {
   const validationError = validateFile(file, bucket);
   if (validationError) throw new Error(validationError);
 
@@ -46,11 +56,11 @@ export async function uploadToStorage(
 
   if (error) throw new Error(`Upload failed: ${error.message}`);
 
-  const { data: urlData } = admin.storage
-    .from(bucket)
-    .getPublicUrl(data.path);
+  const url = bucket === "lore"
+    ? null
+    : admin.storage.from(bucket).getPublicUrl(data.path).data.publicUrl;
 
-  return urlData.publicUrl;
+  return { path: data.path, url };
 }
 
 export async function readTextFromStorage(

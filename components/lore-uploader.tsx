@@ -32,7 +32,7 @@ export function LoreUploader({ lorePackId, onIngested }: LoreUploaderProps) {
       const uploadResponse = await fetch("/api/upload", { method: "POST", body: formData });
       const uploadData = await uploadResponse.json();
 
-      if (!uploadResponse.ok || !uploadData.url) {
+      if (!uploadResponse.ok || !uploadData.path) {
         throw new Error(uploadData.error ?? "Upload failed");
       }
 
@@ -46,7 +46,7 @@ export function LoreUploader({ lorePackId, onIngested }: LoreUploaderProps) {
           title: title.trim(),
           content: text,
           sourceType: file.type === "application/json" ? "json" : "markdown",
-          sourceUrl: uploadData.url
+          metadata: { storagePath: uploadData.path }
         })
       });
 

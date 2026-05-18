@@ -11,32 +11,70 @@ function createId() {
   return crypto.randomUUID?.() ?? Math.random().toString(36).slice(2);
 }
 
-function loadMessages(slug: string): ChatMessage[] {
+function loadMessages(key: string): ChatMessage[] {
   if (typeof window === "undefined") return [];
   try {
-    const stored = localStorage.getItem(`chat-${slug}`);
+    const stored = localStorage.getItem(`chat-${key}`);
     return stored ? JSON.parse(stored) : [];
   } catch {
     return [];
   }
 }
 
-function saveMessages(slug: string, messages: ChatMessage[]) {
+function saveMessages(key: string, messages: ChatMessage[]) {
   if (typeof window === "undefined") return;
   try {
-    localStorage.setItem(`chat-${slug}`, JSON.stringify(messages.slice(-100)));
+    localStorage.setItem(`chat-${key}`, JSON.stringify(messages.slice(-100)));
   } catch {
     // storage full or unavailable
   }
 }
 
+function loadConversationId(key: string): string | undefined {
+  if (typeof window === "undefined") return undefined;
+  return localStorage.getItem(`chat-conversation-${key}`) ?? undefined;
+}
+
+function saveConversationId(key: string, conversationId: string | undefined) {
+  if (typeof window === "undefined") return;
+  if (conversationId) {
+    localStorage.setItem(`chat-conversation-${key}`, conversationId);
+  } else {
+    localStorage.removeItem(`chat-conversation-${key}`);
+  }
+}
+
 const GREETING_ID = "__greeting__";
 
-function makeGreeting(character: CharacterSummary): ChatMessage {
+function buildConversationKey(params: {
+  character: CharacterSummary;
+  groupCharacters?: CharacterSummary[];
+  mode: "single" | "group" | "scene";
+  sceneParams?: { location?: string; mood?: string; time?: string; description?: string };
+}) {
+  const slugs = params.mode === "single"
+    ? [params.character.slug]
+    : (params.groupCharacters?.map((c) => c.slug) ?? [params.character.slug]);
+  const sceneKey = params.mode === "scene" ? JSON.stringify(params.sceneParams ?? {}) : "";
+  return [params.mode, ...slugs, sceneKey].filter(Boolean).join(":");
+}
+
+function makeGreeting(
+  character: CharacterSummary,
+  mode: "single" | "group" | "scene",
+  groupCharacters?: CharacterSummary[],
+  sceneParams?: { location?: string; mood?: string; time?: string; description?: string }
+): ChatMessage {
+  const names = groupCharacters?.map((c) => c.name).join(", ");
+  const sceneDetails = [sceneParams?.location, sceneParams?.time, sceneParams?.mood].filter(Boolean).join(" - ");
   return {
     id: GREETING_ID,
     role: "assistant",
-    content: buildGreetingMessage(character),
+    content: mode === "single"
+      ? buildGreetingMessage(character)
+      : mode === "scene"
+        ? `Scene ready${sceneDetails ? `: ${sceneDetails}` : ""}. Characters present: ${names || character.name}.`
+        : `Group chat started with ${names || character.name}.`,
     createdAt: ""
   };
 }
@@ -59,13 +97,14 @@ export function ChatRoom({
   characterName?: string;
 }) {
   const { user } = useAuth();
+  const conversationKey = buildConversationKey({ character, groupCharacters, mode, sceneParams });
   const loadedRef = useRef(false);
   const [hydrated, setHydrated] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>(
-    () => initialMessages ?? [makeGreeting(character)]
+    () => initialMessages ?? [makeGreeting(character, mode, groupCharacters, sceneParams)]
   );
   const [conversationId, setConversationId] = useState<string | undefined>(
-    initialConversationId
+    () => initialConversationId ?? loadConversationId(conversationKey)
   );
 
   useEffect(() => {
@@ -74,7 +113,7 @@ export function ChatRoom({
       startTransition(() => setHydrated(true));
       return;
     }
-    const saved = loadMessages(character.slug);
+    const saved = loadMessages(conversationKey);
     loadedRef.current = true;
     startTransition(() => {
       setHydrated(true);
@@ -82,7 +121,7 @@ export function ChatRoom({
         setMessages(saved);
       }
     });
-  }, [character.slug, initialMessages]);
+  }, [conversationKey, initialMessages]);
 
   const [input, setInput] = useState("");
   const [streaming, setStreaming] = useState(false);
@@ -96,9 +135,9 @@ export function ChatRoom({
 
   useEffect(() => {
     if (hydrated) {
-      saveMessages(character.slug, messages);
+      saveMessages(conversationKey, messages);
     }
-  }, [messages, character.slug, hydrated]);
+  }, [messages, conversationKey, hydrated]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -175,13 +214,23 @@ export function ChatRoom({
         onDone: (result) => {
           if (result.conversationId) {
             setConversationId(result.conversationId);
+            saveConversationId(conversationKey, result.conversationId);
           }
+          const finalMessageId = createId();
           setReasoningMsgs((prev) => ({ ...prev, [streamMsgId]: reasoningRef.current }));
           reasoningRef.current = "";
+          setReasoningMsgs((prev) => {
+            const next = { ...prev };
+            if (next[streamMsgId]) {
+              next[finalMessageId] = next[streamMsgId];
+              delete next[streamMsgId];
+            }
+            return next;
+          });
           setMessages((prev) =>
             prev.map((m) =>
               m.id === "streaming"
-                ? { ...m, id: createId(), createdAt: new Date().toISOString() }
+                ? { ...m, id: finalMessageId, createdAt: new Date().toISOString() }
                 : m
             )
           );
@@ -193,7 +242,7 @@ export function ChatRoom({
       setStreaming(false);
       inputRef.current?.focus();
     },
-    [input, messages, streaming, character.slug, conversationId, groupCharacters, mode, sceneParams]
+    [input, messages, streaming, character.slug, conversationId, groupCharacters, mode, sceneParams, conversationKey]
   );
 
   const handleCancel = useCallback(() => {
@@ -212,16 +261,12 @@ export function ChatRoom({
   const handleClear = useCallback(() => {
     if (streaming) return;
     setConversationId(undefined);
+    saveConversationId(conversationKey, undefined);
     setMessages([
-      {
-        id: createId(),
-        role: "assistant" as const,
-        content: buildGreetingMessage(character),
-        createdAt: new Date().toISOString()
-      }
+      { ...makeGreeting(character, mode, groupCharacters, sceneParams), id: createId(), createdAt: new Date().toISOString() }
     ]);
     setError(null);
-  }, [streaming, character]);
+  }, [streaming, character, mode, groupCharacters, sceneParams, conversationKey]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -256,7 +301,7 @@ export function ChatRoom({
             data-streaming={msg.id === "streaming" ? true : undefined}
           >
             <div className="chat-message-role">
-              {msg.role === "user" ? "You" : character.name}
+              {msg.role === "user" ? "You" : mode === "scene" ? "Scene Director" : mode === "group" ? "Narrator" : character.name}
             </div>
             {reasoningMsgs[msg.id] && (
               <details className="chat-reasoning">
@@ -282,7 +327,7 @@ export function ChatRoom({
             ref={inputRef}
             type="text"
             className="chat-input"
-            placeholder={`Message ${character.name}...`}
+            placeholder={mode === "scene" ? "Describe your action..." : mode === "group" ? "Message the group..." : `Message ${character.name}...`}
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}

@@ -15,6 +15,10 @@ const ingestRequestSchema = z.object({
 
 export async function POST(request: Request) {
   try {
+    if (request.headers.get("content-type")?.includes("application/json") !== true) {
+      return NextResponse.json({ error: "Content-Type must be application/json" }, { status: 415 });
+    }
+
     const body = await request.json();
     const parsed = ingestRequestSchema.safeParse(body);
 
@@ -33,10 +37,6 @@ export async function POST(request: Request) {
     const { data: userData } = await supabase.auth.getUser();
     if (!userData?.user) {
       return NextResponse.json({ error: "Authentication required" }, { status: 401 });
-    }
-
-    if (request.headers.get("content-type")?.includes("application/json") !== true) {
-      return NextResponse.json({ error: "Content-Type must be application/json" }, { status: 415 });
     }
 
     const { lorePackId } = parsed.data;

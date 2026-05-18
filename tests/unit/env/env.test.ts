@@ -47,4 +47,22 @@ describe("env validation", () => {
       expect(env.EMBEDDING_DIMENSIONS).toBe("768");
     }
   });
+
+  it("getServerEnvOrNull treats empty optional keys as unset", async () => {
+    process.env.NEXT_PUBLIC_SUPABASE_URL = "https://test.supabase.co";
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = "test-key";
+    process.env.OPENAI_API_KEY = "";
+    process.env.ANTHROPIC_API_KEY = "";
+    process.env.OPENROUTER_API_KEY = "";
+    process.env.KIMI_API_KEY = "";
+    process.env.GLM_API_KEY = "";
+    process.env.QWEN_API_KEY = "qwen-key";
+
+    const { getServerEnvOrNull } = await import("@/lib/env");
+    const env = getServerEnvOrNull();
+
+    expect(env).not.toBeNull();
+    expect(env?.OPENAI_API_KEY).toBeUndefined();
+    expect(env?.QWEN_API_KEY).toBe("qwen-key");
+  });
 });

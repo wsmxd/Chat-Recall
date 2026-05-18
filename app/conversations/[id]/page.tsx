@@ -2,11 +2,12 @@ import Link from "next/link";
 import { redirect, notFound } from "next/navigation";
 import { getSession } from "@/lib/auth/server";
 import { getConversation, getConversationMessages } from "@/lib/chat/conversations";
-import { getPublicCharacterBySlug } from "@/lib/characters/queries";
+import { getPublicCharacterBySlug, listPublicCharacters } from "@/lib/characters/queries";
 import { ChatRoom } from "@/components/chat-room";
 import { AuthStatus } from "@/components/auth-status";
 import { ThemeStyle } from "@/components/theme-style";
 import { ErrorBoundary } from "@/components/error-boundary";
+import { defaultCharacters } from "@/config/default-characters";
 
 type ConversationPageProps = {
   params: Promise<{ id: string }>;
@@ -20,13 +21,20 @@ export default async function ConversationPage({ params }: ConversationPageProps
   const conversation = await getConversation(id, user.id);
   if (!conversation) notFound();
 
+  const fallbackCharacter = defaultCharacters.find(
+    (candidate) => candidate.name === conversation.characterName || candidate.name === conversation.title
+  );
   const character = conversation.characterSlug
     ? await getPublicCharacterBySlug(conversation.characterSlug)
-    : null;
+    : fallbackCharacter ?? null;
 
   if (!character) notFound();
 
   const messages = await getConversationMessages(id);
+  const allCharacters = await listPublicCharacters();
+  const groupCharacters = conversation.characterSlugs
+    .map((slug) => allCharacters.find((candidate) => candidate.slug === slug))
+    .filter((candidate): candidate is NonNullable<typeof candidate> => Boolean(candidate));
 
   const themeId = character.card.theme?.defaultThemeId;
 
@@ -56,6 +64,10 @@ export default async function ConversationPage({ params }: ConversationPageProps
             character={character}
             initialConversationId={id}
             initialMessages={messages}
+            groupCharacters={groupCharacters.length > 0 ? groupCharacters : undefined}
+            mode={conversation.mode}
+            sceneParams={conversation.sceneParams}
+            characterName={conversation.mode !== "single" ? conversation.characterNames.join(", ") : undefined}
           />
         </ErrorBoundary>
       </div>

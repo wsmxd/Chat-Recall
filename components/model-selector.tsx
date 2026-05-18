@@ -24,7 +24,7 @@ const providerNames: Record<string, string> = {
 };
 
 export function ModelSelector() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [provider, setProvider] = useState<string | null>(() => {
     if (typeof window === "undefined") return null;
     const s = localStorage.getItem("defaultProvider");
@@ -37,13 +37,16 @@ export function ModelSelector() {
     if (s) try { return JSON.parse(s).model } catch { return null }
     return null;
   });
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!user) return;
+    if (authLoading) return;
+    if (!user) {
+      return;
+    }
     fetch("/api/provider-config")
       .then(async (r) => {
         if (!r.ok) {
@@ -63,7 +66,7 @@ export function ModelSelector() {
         console.error("Failed to load provider config:", err);
       })
       .finally(() => setLoading(false));
-  }, [user]);
+  }, [user, authLoading]);
 
   const handleProviderChange = (p: string) => {
     setProvider(p);
@@ -83,9 +86,7 @@ export function ModelSelector() {
         body: JSON.stringify({ provider, model })
       });
 
-      console.log("PUT response status:", response.status);
       const text = await response.text();
-      console.log("PUT response body:", text);
 
       let data: Record<string, unknown> = {};
       try { data = JSON.parse(text); } catch {}
@@ -104,7 +105,7 @@ export function ModelSelector() {
     setSaving(false);
   };
 
-  if (loading) {
+  if (authLoading || loading) {
     return (
       <article className="card">
         <h2>Chat Model</h2>

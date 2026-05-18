@@ -13,9 +13,38 @@ export interface ConversationSummary {
   createdAt: string;
 }
 
+type ChatMode = "single" | "group" | "scene";
+
+type ConversationSettings = {
+  characterSlug?: string;
+  characterName?: string;
+  characterSlugs?: string[];
+  characterNames?: string[];
+  sceneParams?: { location?: string; mood?: string; time?: string; description?: string };
+};
+
+function toDbMode(mode?: ChatMode) {
+  if (mode === "group") return "group_chat" as const;
+  if (mode === "scene") return "scene" as const;
+  return "single_character" as const;
+}
+
+function fromDbMode(mode: string): ChatMode {
+  if (mode === "group_chat") return "group";
+  if (mode === "scene") return "scene";
+  return "single";
+}
+
 export async function createConversation(params: {
   userId: string;
   characterId?: string;
+  characterIds?: string[];
+  characterSlug?: string;
+  characterName?: string;
+  characterSlugs?: string[];
+  characterNames?: string[];
+  mode?: ChatMode;
+  sceneParams?: ConversationSettings["sceneParams"];
   title?: string;
 }): Promise<string | null> {
   const supabase = await createSupabaseServerClient();
@@ -26,8 +55,15 @@ export async function createConversation(params: {
     .insert({
       owner_id: params.userId,
       title: params.title ?? null,
-      character_ids: params.characterId ? [params.characterId] : [],
-      mode: "single_character"
+      character_ids: params.characterIds ?? (params.characterId ? [params.characterId] : []),
+      settings: {
+        characterSlug: params.characterSlug,
+        characterName: params.characterName,
+        characterSlugs: params.characterSlugs,
+        characterNames: params.characterNames,
+        sceneParams: params.sceneParams
+      } as Json,
+      mode: toDbMode(params.mode)
     })
     .select("id")
     .single();
@@ -104,8 +140,9 @@ export async function listConversations(userId: string): Promise<ConversationSum
       .select("*", { count: "exact", head: true })
       .eq("conversation_id", conv.id);
 
-    let characterName = "";
-    let characterSlug = "";
+    const settings = conv.settings as ConversationSettings | null;
+    let characterName = settings?.characterName ?? "";
+    let characterSlug = settings?.characterSlug ?? "";
 
     if (conv.character_ids.length > 0) {
       const { data: char } = await supabase
@@ -124,7 +161,7 @@ export async function listConversations(userId: string): Promise<ConversationSum
       title: conv.title,
       characterName,
       characterSlug,
-      mode: conv.mode,
+      mode: fromDbMode(conv.mode),
       messageCount: count ?? 0,
       lastMessageAt: conv.updated_at,
       createdAt: conv.created_at
@@ -147,8 +184,9 @@ export async function getConversation(conversationId: string, userId: string) {
 
   if (error || !data) return null;
 
-  let characterName = "";
-  let characterSlug = "";
+  const settings = data.settings as ConversationSettings | null;
+  let characterName = settings?.characterName ?? "";
+  let characterSlug = settings?.characterSlug ?? "";
 
   if (data.character_ids.length > 0) {
     const { data: char } = await supabase
@@ -167,8 +205,11 @@ export async function getConversation(conversationId: string, userId: string) {
     title: data.title,
     characterName,
     characterSlug,
+    characterSlugs: settings?.characterSlugs ?? (characterSlug ? [characterSlug] : []),
+    characterNames: settings?.characterNames ?? (characterName ? [characterName] : []),
     characterId: data.character_ids[0] ?? null,
-    mode: data.mode,
+    mode: fromDbMode(data.mode),
+    sceneParams: settings?.sceneParams,
     createdAt: data.created_at,
     updatedAt: data.updated_at
   };

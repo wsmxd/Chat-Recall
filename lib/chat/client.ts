@@ -77,6 +77,9 @@ export async function streamChat(options: ChatStreamOptions): Promise<void> {
             } else if (event.type === "reasoning" && event.value) {
               onReasoning?.(event.value);
             } else if (event.type === "error") {
+              if (event.conversationId) {
+                onDone({ conversationId: event.conversationId });
+              }
               onError(event.error ?? "Unknown error");
             } else if (event.type === "done") {
               onDone({

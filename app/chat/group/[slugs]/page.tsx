@@ -20,11 +20,14 @@ export default async function GroupChatRoomPage({ params, searchParams }: GroupC
   const characters = (await Promise.all(slugList.map((s) => getPublicCharacterBySlug(s))))
     .filter((c) => c !== null);
 
-  if (characters.length === 0) {
+  if (characters.length !== slugList.length) {
     notFound();
   }
 
   const mode = (sp.mode === "scene" ? "scene" : "group") as "group" | "scene";
+  if (mode === "group" && characters.length < 2) {
+    notFound();
+  }
   const sceneParams = mode === "scene" ? {
     location: sp.location,
     mood: sp.mood,
