@@ -1,4 +1,5 @@
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/types/database.types";
 
 export interface ProviderConfig {
   id: string;
@@ -10,11 +11,9 @@ export interface ProviderConfig {
 }
 
 export async function getUserDefaultProvider(
+  supabase: SupabaseClient<Database>,
   userId: string
 ): Promise<ProviderConfig | null> {
-  const supabase = await createSupabaseServerClient();
-  if (!supabase) return null;
-
   const { data, error } = await supabase
     .from("provider_configs")
     .select("*")
@@ -35,14 +34,12 @@ export async function getUserDefaultProvider(
 }
 
 export async function setDefaultProvider(
+  supabase: SupabaseClient<Database>,
   userId: string,
   provider: string,
   model: string,
   settings?: Record<string, unknown>
 ): Promise<ProviderConfig | null> {
-  const supabase = await createSupabaseServerClient();
-  if (!supabase) return null;
-
   await supabase
     .from("provider_configs")
     .update({ is_default: false })

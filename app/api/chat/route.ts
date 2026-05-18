@@ -182,7 +182,7 @@ export async function POST(request: Request) {
     let resolvedModel = model ?? "deepseek-chat";
     let providerId = "deepseek";
     if (!model && userId) {
-      const userConfig = await getUserDefaultProvider(userId);
+      const userConfig = supabase ? await getUserDefaultProvider(supabase, userId) : null;
       if (userConfig) {
         resolvedModel = userConfig.model;
         providerId = userConfig.provider;

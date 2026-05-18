@@ -25,29 +25,42 @@ const providerNames: Record<string, string> = {
 
 export function ModelSelector() {
   const { user } = useAuth();
-  const [provider, setProvider] = useState<string | null>(null);
-  const [model, setModel] = useState<string | null>(null);
+  const [provider, setProvider] = useState<string | null>(() => {
+    if (typeof window === "undefined") return null;
+    const s = localStorage.getItem("defaultProvider");
+    if (s) try { return JSON.parse(s).provider } catch { return null }
+    return null;
+  });
+  const [model, setModel] = useState<string | null>(() => {
+    if (typeof window === "undefined") return null;
+    const s = localStorage.getItem("defaultProvider");
+    if (s) try { return JSON.parse(s).model } catch { return null }
+    return null;
+  });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) return;
-    setLoading(true);
     fetch("/api/provider-config")
-      .then((r) => r.json())
+      .then(async (r) => {
+        if (!r.ok) {
+          const err = await r.json().catch(() => ({}));
+          throw new Error(err.error || `HTTP ${r.status}`);
+        }
+        return r.json();
+      })
       .then((data) => {
         if (data.config) {
           setProvider(data.config.provider);
           setModel(data.config.model);
-        } else {
-          setProvider("deepseek");
-          setModel("deepseek-chat");
+          localStorage.setItem("defaultProvider", JSON.stringify({ provider: data.config.provider, model: data.config.model }));
         }
       })
-      .catch(() => {
-        setProvider("deepseek");
-        setModel("deepseek-chat");
+      .catch((err) => {
+        console.error("Failed to load provider config:", err);
       })
       .finally(() => setLoading(false));
   }, [user]);
@@ -61,15 +74,27 @@ export function ModelSelector() {
     if (!user || !provider || !model) return;
     setSaving(true);
     setSaved(false);
-    const response = await fetch("/api/provider-config", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ provider, model })
-    });
+    setError(null);
 
-    if (response.ok) {
-      setSaved(true);
-      localStorage.setItem("defaultProvider", JSON.stringify({ provider, model }));
+    try {
+      const response = await fetch("/api/provider-config", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider, model })
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.config) {
+        setSaved(true);
+        localStorage.setItem("defaultProvider", JSON.stringify({ provider, model }));
+      } else {
+        setError(data.error || "Save failed");
+        console.error("Save provider config error:", data);
+      }
+    } catch (e) {
+      setError("Network error");
+      console.error("Save network error:", e);
     }
     setSaving(false);
   };
@@ -116,6 +141,7 @@ export function ModelSelector() {
           {saving ? "Saving..." : saved ? "Saved" : "Save"}
         </button>
       </div>
+      {error && <p style={{ color: "var(--color-error, #e53e3e)", marginTop: "8px" }}>{error}</p>}
     </article>
   );
 }
