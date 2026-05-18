@@ -8,9 +8,9 @@ const providers: Partial<Record<string, () => Promise<LLMProvider>>> = {
   openai: () => import("@/lib/llm/providers/openai").then((m) => m.createOpenAIProvider()),
   anthropic: () => import("@/lib/llm/providers/anthropic").then((m) => m.createAnthropicProvider()),
   openrouter: () => import("@/lib/llm/providers/openrouter").then((m) => m.createOpenRouterProvider()),
-  kimi: () => import("@/lib/llm/providers/openai").then((m) => m.createOpenAIProvider({ baseUrl: "https://api.moonshot.cn" })),
-  qwen: () => import("@/lib/llm/providers/openai").then((m) => m.createOpenAIProvider({ baseUrl: "https://dashscope.aliyuncs.com/compatible-mode/v1" })),
-  glm: () => import("@/lib/llm/providers/openai").then((m) => m.createOpenAIProvider({ baseUrl: "https://open.bigmodel.cn/api/paas/v4" }))
+  kimi: () => import("@/lib/llm/providers/openai").then((m) => m.createOpenAIProvider({ baseUrl: "https://api.moonshot.cn", apiKeyEnv: "KIMI_API_KEY" })),
+  qwen: () => import("@/lib/llm/providers/openai").then((m) => m.createOpenAIProvider({ baseUrl: "https://dashscope.aliyuncs.com/compatible-mode/v1", apiKeyEnv: "QWEN_API_KEY" })),
+  glm: () => import("@/lib/llm/providers/openai").then((m) => m.createOpenAIProvider({ baseUrl: "https://open.bigmodel.cn/api/paas/v4", apiKeyEnv: "GLM_API_KEY" }))
 };
 
 export async function createProvider(providerId: string): Promise<LLMProvider> {

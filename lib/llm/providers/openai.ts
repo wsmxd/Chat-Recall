@@ -20,15 +20,16 @@ function parseSSELine(line: string): Record<string, unknown> | null {
   }
 }
 
-export function createOpenAIProvider(config?: { baseUrl?: string }): LLMProvider {
+export function createOpenAIProvider(config?: { baseUrl?: string; apiKeyEnv?: string }): LLMProvider {
   const id = "openai" as const;
   const displayName = "OpenAI";
   const customBaseUrl = config?.baseUrl;
+  const keyEnv = config?.apiKeyEnv ?? "OPENAI_API_KEY";
 
   async function generate(options: LLMGenerateOptions): Promise<LLMResponse> {
     const env = getServerEnvOrNull();
-    const apiKey = env?.OPENAI_API_KEY;
-    if (!env || !apiKey) throw new Error("OPENAI_API_KEY is not configured.");
+    const apiKey = env ? (env as Record<string, string | undefined>)[keyEnv] : undefined;
+    if (!env || !apiKey) throw new Error(`${keyEnv} is not configured.`);
 
     const baseUrl = customBaseUrl || env.OPENAI_BASE_URL || "https://api.openai.com";
 
@@ -64,9 +65,9 @@ export function createOpenAIProvider(config?: { baseUrl?: string }): LLMProvider
 
   async function* stream(options: LLMGenerateOptions): AsyncIterable<LLMStreamEvent> {
     const env = getServerEnvOrNull();
-    const apiKey = env?.OPENAI_API_KEY;
+    const apiKey = env ? (env as Record<string, string | undefined>)[keyEnv] : undefined;
     if (!env || !apiKey) {
-      yield { type: "error", error: new Error("OPENAI_API_KEY is not configured.") };
+      yield { type: "error", error: new Error(`${keyEnv} is not configured.`) };
       return;
     }
 
