@@ -84,6 +84,7 @@ export async function ingestDocument(params: IngestParams): Promise<IngestionRes
     .insert(chunkRows);
 
   if (chunkError) {
+    console.error("Chunk insert error:", chunkError);
     throw new Error("Failed to store document chunks in database");
   }
 

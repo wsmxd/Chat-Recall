@@ -40,13 +40,13 @@ export function createTongyiEmbeddingProvider(): EmbeddingProvider {
           },
           body: JSON.stringify({
             model: options.model || model,
-            input: batch,
-            dimensions: options.dimensions || dimensions
+            input: batch
           })
         });
 
         if (!response.ok) {
           const errorText = await response.text();
+          console.error("DashScope embedding error:", response.status, errorText);
           throw new Error(`DashScope embedding error ${response.status}: ${errorText}`);
         }
 
