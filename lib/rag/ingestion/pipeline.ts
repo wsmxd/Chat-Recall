@@ -37,6 +37,18 @@ export async function ingestDocument(params: IngestParams): Promise<IngestionRes
 
   const provider = params.embeddingProvider ?? createTongyiEmbeddingProvider();
 
+  const docMetadata: Record<string, unknown> = {
+    source_type: params.sourceType ?? "text",
+    ...params.metadata
+  };
+
+  const chunks = chunkMarkdown(params.content, docMetadata);
+
+  const texts = chunks.map((c) => c.content);
+  const result = chunks.length > 0
+    ? await provider.embed({ model: provider.model, input: texts })
+    : { embeddings: [] as number[][], model: provider.model };
+
   const { data: doc, error: docError } = await supabase
     .from("documents")
     .insert({
@@ -53,19 +65,9 @@ export async function ingestDocument(params: IngestParams): Promise<IngestionRes
     throw new Error("Failed to create document in database");
   }
 
-  const docMetadata: Record<string, unknown> = {
-    source_type: params.sourceType ?? "text",
-    ...params.metadata
-  };
-
-  const chunks = chunkMarkdown(params.content, docMetadata);
-
   if (chunks.length === 0) {
     return { documentId: doc.id, chunksStored: 0, embeddingDimensions: provider.dimensions };
   }
-
-  const texts = chunks.map((c) => c.content);
-  const result = await provider.embed({ model: provider.model, input: texts });
 
   const chunkRows = chunks.map((chunk, i) => ({
     document_id: doc.id,
