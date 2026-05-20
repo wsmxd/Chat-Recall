@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import { AppShell } from "@/components/app-shell";
 import { getCharacterBySlug, listPublicCharacters } from "@/lib/characters/queries";
@@ -40,10 +41,10 @@ export default async function CharacterPage({ params }: CharacterPageProps) {
       <main className="page">
         <header className="page-header">
           {character.avatarUrl && (
-            <img src={character.avatarUrl} alt={character.name} className="character-avatar" />
+            <Image src={character.avatarUrl} alt={character.name} width={120} height={120} className="character-avatar" />
           )}
           {character.coverUrl && (
-            <img src={character.coverUrl} alt="" className="character-cover" />
+            <Image src={character.coverUrl} alt="" width={800} height={300} className="character-cover" />
           )}
           <h1>{character.name}</h1>
           <p>{character.subtitle}</p>

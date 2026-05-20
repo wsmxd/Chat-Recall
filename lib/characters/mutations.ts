@@ -136,6 +136,21 @@ export async function deleteCharacter(id: string, ownerId: string): Promise<bool
 
   if (error) return false;
 
+  // Clean up conversations referencing this character
+  try {
+    const { data: convs } = await supabase
+      .from("conversations")
+      .select("id")
+      .contains("character_ids", [id]);
+
+    if (convs?.length) {
+      const convIds = convs.map((c) => c.id);
+      await supabase.from("conversations").delete().in("id", convIds);
+    }
+  } catch {
+    // best-effort cleanup
+  }
+
   if (char) {
     try {
       const admin = createSupabaseAdminClient();
