@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AppShell } from "@/components/app-shell";
-import { getPublicCharacterBySlug, listPublicCharacters } from "@/lib/characters/queries";
+import { getCharacterBySlug, listPublicCharacters } from "@/lib/characters/queries";
 import { getSession } from "@/lib/auth/server";
 import { listUserCharacters } from "@/lib/characters/mutations";
 import { CharacterActions } from "@/components/character-actions";
@@ -23,7 +23,7 @@ export async function generateStaticParams() {
 export default async function CharacterPage({ params }: CharacterPageProps) {
   const { slug } = await params;
   const { user } = await getSession();
-  const character = await getPublicCharacterBySlug(slug);
+  const character = await getCharacterBySlug(slug, user?.id);
 
   if (!character) {
     notFound();

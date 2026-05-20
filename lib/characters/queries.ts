@@ -84,7 +84,7 @@ export async function getPublicCharacterBySlug(slug: string) {
 export async function getCharacterBySlug(slug: string, userId?: string) {
   if (userId) {
     const fromSupabase = await getCharacterFromSupabase(slug);
-    if (fromSupabase && (fromSupabase.visibility !== "private" || fromSupabase.card.metadata.source === "forked")) {
+    if (fromSupabase) {
       return fromSupabase;
     }
   }

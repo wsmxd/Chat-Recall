@@ -1,4 +1,4 @@
-import { getPublicCharacterBySlug, getSupabaseCharacterIdBySlug } from "@/lib/characters/queries";
+import { getCharacterBySlug, getSupabaseCharacterIdBySlug } from "@/lib/characters/queries";
 import { buildChatPrompt, buildGroupChatPrompt, buildSceneDirectorPrompt } from "@/lib/chat/prompt-builder";
 import type { LoreChunk } from "@/lib/rag/types";
 import { createConversation, saveMessage } from "@/lib/chat/conversations";
@@ -70,7 +70,15 @@ export async function POST(request: Request) {
       });
     }
 
-    const character = await getPublicCharacterBySlug(characterSlug);
+    // Check auth for conversation persistence
+    const supabase = await createSupabaseServerClient();
+    const { data: userData } = supabase
+      ? await supabase.auth.getUser()
+      : { data: { user: null } };
+
+    const userId = userData?.user?.id ?? null;
+
+    const character = await getCharacterBySlug(characterSlug, userId ?? undefined);
     if (!character) {
       return new Response(JSON.stringify({ error: "Character not found" }), {
         status: 404,
@@ -78,7 +86,7 @@ export async function POST(request: Request) {
       });
     }
 
-    const allCharacters = (await Promise.all(requestedSlugs.map((s) => getPublicCharacterBySlug(s))))
+    const allCharacters = (await Promise.all(requestedSlugs.map((s) => getCharacterBySlug(s, userId ?? undefined))))
       .filter((c): c is NonNullable<typeof c> => c !== null);
 
     if ((mode === "group" || mode === "scene") && allCharacters.length !== requestedSlugs.length) {
@@ -88,13 +96,6 @@ export async function POST(request: Request) {
       });
     }
 
-    // Check auth for conversation persistence
-    const supabase = await createSupabaseServerClient();
-    const { data: userData } = supabase
-      ? await supabase.auth.getUser()
-      : { data: { user: null } };
-
-    const userId = userData?.user?.id ?? null;
     let activeConversationId = conversationId ?? null;
     let userMsgId: string | null = null;
 

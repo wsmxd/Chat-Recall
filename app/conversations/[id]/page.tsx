@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect, notFound } from "next/navigation";
 import { getSession } from "@/lib/auth/server";
 import { getConversation, getConversationMessages } from "@/lib/chat/conversations";
-import { getPublicCharacterBySlug, listPublicCharacters } from "@/lib/characters/queries";
+import { getCharacterBySlug } from "@/lib/characters/queries";
 import { ChatRoom } from "@/components/chat-room";
 import { AuthStatus } from "@/components/auth-status";
 import { ThemeStyle } from "@/components/theme-style";
@@ -25,16 +25,15 @@ export default async function ConversationPage({ params }: ConversationPageProps
     (candidate) => candidate.name === conversation.characterName || candidate.name === conversation.title
   );
   const character = conversation.characterSlug
-    ? await getPublicCharacterBySlug(conversation.characterSlug)
+    ? await getCharacterBySlug(conversation.characterSlug, user.id)
     : fallbackCharacter ?? null;
 
   if (!character) notFound();
 
   const messages = await getConversationMessages(id);
-  const allCharacters = await listPublicCharacters();
-  const groupCharacters = conversation.characterSlugs
-    .map((slug) => allCharacters.find((candidate) => candidate.slug === slug))
-    .filter((candidate): candidate is NonNullable<typeof candidate> => Boolean(candidate));
+  const groupCharacters = (
+    await Promise.all(conversation.characterSlugs.map((slug) => getCharacterBySlug(slug, user.id)))
+  ).filter((c): c is NonNullable<typeof c> => c !== null);
 
   const themeId = character.card.theme?.defaultThemeId;
 

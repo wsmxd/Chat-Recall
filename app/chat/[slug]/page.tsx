@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getPublicCharacterBySlug } from "@/lib/characters/queries";
+import { getCharacterBySlug } from "@/lib/characters/queries";
+import { getSession } from "@/lib/auth/server";
 import { ChatRoom } from "@/components/chat-room";
 import { ThemeStyle } from "@/components/theme-style";
 import { ErrorBoundary } from "@/components/error-boundary";
@@ -13,7 +14,8 @@ type ChatPageProps = {
 
 export default async function ChatPage({ params }: ChatPageProps) {
   const { slug } = await params;
-  const character = await getPublicCharacterBySlug(slug);
+  const { user } = await getSession();
+  const character = await getCharacterBySlug(slug, user?.id);
 
   if (!character) {
     notFound();
