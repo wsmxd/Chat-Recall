@@ -71,6 +71,8 @@ export type CharacterSummary = {
   subtitle?: string;
   visibility: CharacterVisibility;
   card: CharacterCard;
+  avatarUrl?: string | null;
+  coverUrl?: string | null;
 };
 
 export function parseCharacterCard(input: unknown): CharacterCard {

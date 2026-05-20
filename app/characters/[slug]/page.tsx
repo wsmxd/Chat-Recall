@@ -38,6 +38,12 @@ export default async function CharacterPage({ params }: CharacterPageProps) {
     <AppShell>
       <main className="page">
         <header className="page-header">
+          {character.avatarUrl && (
+            <img src={character.avatarUrl} alt={character.name} className="character-avatar" />
+          )}
+          {character.coverUrl && (
+            <img src={character.coverUrl} alt="" className="character-cover" />
+          )}
           <h1>{character.name}</h1>
           <p>{character.subtitle}</p>
         </header>

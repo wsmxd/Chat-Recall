@@ -5,7 +5,9 @@ export const archiveGuideCharacter = {
   slug: "archive-guide",
   name: "Archive Guide",
   subtitle: "A calm test character for validating cards, themes, and lore retrieval.",
-  visibility: "official",
+  visibility: "official" as const,
+  avatarUrl: null,
+  coverUrl: null,
   card: {
     schemaVersion: "0.1",
     name: "Archive Guide",

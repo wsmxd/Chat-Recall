@@ -30,7 +30,9 @@ async function listCharactersFromSupabase(visibilityFilter?: CharacterVisibility
         name: row.name,
         subtitle: row.subtitle ?? undefined,
         visibility: row.visibility as CharacterVisibility,
-        card
+        card,
+        avatarUrl: row.avatar_url ?? null,
+        coverUrl: row.cover_url ?? null
       };
     });
   } catch {
@@ -62,7 +64,9 @@ async function getCharacterFromSupabase(slug: string, visibilityFilter?: Charact
       name: data.name,
       subtitle: data.subtitle ?? undefined,
       visibility: data.visibility as CharacterVisibility,
-      card
+      card,
+      avatarUrl: data.avatar_url ?? null,
+      coverUrl: data.cover_url ?? null
     };
   } catch {
     return null;

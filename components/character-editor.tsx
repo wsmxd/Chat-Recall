@@ -305,7 +305,9 @@ export function CharacterEditor({ mode, initialData }: CharacterEditorProps) {
             name: formData.name,
             subtitle: formData.subtitle || undefined,
             card,
-            visibility: formData.visibility
+            visibility: formData.visibility,
+            avatarUrl: avatarUrl || undefined,
+            coverUrl: coverUrl || undefined
           })
         });
 
@@ -340,7 +342,7 @@ export function CharacterEditor({ mode, initialData }: CharacterEditorProps) {
     } finally {
       setSubmitting(false);
     }
-  }, [formData, validate, user, mode, initialData, router]);
+  }, [formData, validate, user, mode, initialData, router, avatarUrl, coverUrl]);
 
   const handleExport = useCallback(() => {
     const card = toCard(formData);

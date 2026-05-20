@@ -11,7 +11,9 @@ const createCharacterSchema = z.object({
   subtitle: z.string().optional(),
   card: characterCardSchema,
   visibility: z.enum(["private", "unlisted", "public", "official"]).default("private"),
-  themeId: z.string().uuid().optional()
+  themeId: z.string().uuid().optional(),
+  avatarUrl: z.string().optional(),
+  coverUrl: z.string().optional()
 });
 
 export async function GET() {
@@ -65,7 +67,9 @@ export async function POST(request: Request) {
       subtitle: parsed.data.subtitle,
       card: parsed.data.card,
       visibility: parsed.data.visibility as CharacterVisibility,
-      themeId: parsed.data.themeId
+      themeId: parsed.data.themeId,
+      avatarUrl: parsed.data.avatarUrl,
+      coverUrl: parsed.data.coverUrl
     });
 
     if (!character) {

@@ -31,6 +31,8 @@ export async function createCharacter(params: {
   card: CharacterCard;
   visibility?: CharacterVisibility;
   themeId?: string;
+  avatarUrl?: string;
+  coverUrl?: string;
 }): Promise<CharacterWithCard | null> {
   const supabase = await createSupabaseServerClient();
   if (!supabase) return null;
@@ -44,7 +46,9 @@ export async function createCharacter(params: {
       subtitle: params.subtitle ?? null,
       visibility: params.visibility ?? "private",
       definition: params.card,
-      theme_id: params.themeId ?? null
+      theme_id: params.themeId ?? null,
+      avatar_url: params.avatarUrl ?? null,
+      cover_url: params.coverUrl ?? null
     })
     .select()
     .single();
@@ -67,6 +71,8 @@ export async function updateCharacter(params: {
   subtitle?: string;
   themeId?: string | null;
   defaultLorePackId?: string | null;
+  avatarUrl?: string | null;
+  coverUrl?: string | null;
 }): Promise<CharacterWithCard | null> {
   const supabase = await createSupabaseServerClient();
   if (!supabase) return null;
@@ -82,6 +88,8 @@ export async function updateCharacter(params: {
   if (params.subtitle !== undefined) updates.subtitle = params.subtitle;
   if (params.themeId !== undefined) updates.theme_id = params.themeId;
   if (params.defaultLorePackId !== undefined) updates.default_lore_pack_id = params.defaultLorePackId;
+  if (params.avatarUrl !== undefined) updates.avatar_url = params.avatarUrl;
+  if (params.coverUrl !== undefined) updates.cover_url = params.coverUrl;
 
   const { data, error } = await supabase
     .from("characters")
