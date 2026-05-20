@@ -15,7 +15,7 @@ export default function SettingsPage() {
           <ModelSelector />
           <article className="card">
             <h2>Embedding Provider</h2>
-            <p>Tongyi/DashScope is configured for RAG embeddings (768 dimensions).</p>
+            <p>Tongyi/DashScope is configured for RAG embeddings (1024 dimensions).</p>
           </article>
           <article className="card">
             <h2>Auth</h2>
