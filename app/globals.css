@@ -236,11 +236,6 @@ select {
   color: var(--text);
 }
 
-.button.danger {
-  border-color: var(--border);
-  color: var(--text);
-}
-
 .button.danger:hover {
   border-color: #d65b5b;
   color: #d65b5b;

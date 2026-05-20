@@ -24,7 +24,7 @@ export function DeleteCharacterButton({ id, slug }: { id: string; slug: string }
   };
 
   return (
-    <button className="button danger" onClick={handleDelete} disabled={deleting} type="button">
+    <button className="button secondary danger" onClick={handleDelete} disabled={deleting} type="button">
       {deleting ? "Deleting..." : "Delete Character"}
     </button>
   );
