@@ -240,6 +240,10 @@ on public.lore_packs for update
 using (auth.uid() = owner_id)
 with check (auth.uid() = owner_id);
 
+create policy "lore pack owners can delete"
+on public.lore_packs for delete
+using (auth.uid() = owner_id);
+
 create policy "public characters are readable"
 on public.characters for select
 using (visibility in ('public', 'official') or auth.uid() = owner_id);
@@ -252,6 +256,10 @@ create policy "character owners can update"
 on public.characters for update
 using (auth.uid() = owner_id)
 with check (auth.uid() = owner_id);
+
+create policy "character owners can delete"
+on public.characters for delete
+using (auth.uid() = owner_id);
 
 create policy "character versions follow character visibility"
 on public.character_versions for select

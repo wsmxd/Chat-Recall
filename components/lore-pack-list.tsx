@@ -22,6 +22,7 @@ export function LorePackList() {
   const [description, setDescription] = useState("");
   const [creating, setCreating] = useState(false);
   const [uploadingFor, setUploadingFor] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState<string | null>(null);
 
   const refresh = async () => {
     if (!user) return;
@@ -30,6 +31,14 @@ export function LorePackList() {
     const data = await response.json();
     if (response.ok) setPacks(data.packs ?? []);
     setLoading(false);
+  };
+
+  const handleDelete = async (id: string, name: string) => {
+    if (!confirm(`Delete lore pack "${name}" and all its documents? This cannot be undone.`)) return;
+    setDeleting(id);
+    await fetch(`/api/lore-packs/${id}`, { method: "DELETE" });
+    await refresh();
+    setDeleting(null);
   };
 
   useEffect(() => {
@@ -119,6 +128,14 @@ export function LorePackList() {
                   type="button"
                 >
                   Copy ID
+                </button>
+                <button
+                  className="memory-action-btn delete"
+                  onClick={() => handleDelete(pack.id, pack.name)}
+                  disabled={deleting === pack.id}
+                  type="button"
+                >
+                  {deleting === pack.id ? "Deleting..." : "Delete"}
                 </button>
               </div>
               {uploadingFor === pack.id && (

@@ -5,6 +5,7 @@ import { getCharacterBySlug, listPublicCharacters } from "@/lib/characters/queri
 import { getSession } from "@/lib/auth/server";
 import { listUserCharacters } from "@/lib/characters/mutations";
 import { CharacterActions } from "@/components/character-actions";
+import { DeleteCharacterButton } from "@/components/delete-character-button";
 
 type CharacterPageProps = {
   params: Promise<{
@@ -125,9 +126,12 @@ export default async function CharacterPage({ params }: CharacterPageProps) {
             Start chat
           </Link>
           {isOwner && (
-            <Link className="button secondary" href={`/characters/${character.slug}/edit`}>
-              Edit
-            </Link>
+            <>
+              <Link className="button secondary" href={`/characters/${character.slug}/edit`}>
+                Edit
+              </Link>
+              <DeleteCharacterButton id={character.id} slug={character.slug} />
+            </>
           )}
           {user && (
             <span className="button secondary" data-action="fork" data-slug={character.slug}>

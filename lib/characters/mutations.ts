@@ -1,4 +1,5 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { parseCharacterCard, type CharacterCard, type CharacterVisibility } from "@/lib/characters/schema";
 
 export interface CharacterRow {
@@ -120,13 +121,42 @@ export async function deleteCharacter(id: string, ownerId: string): Promise<bool
   const supabase = await createSupabaseServerClient();
   if (!supabase) return false;
 
+  const { data: char } = await supabase
+    .from("characters")
+    .select("avatar_url, cover_url")
+    .eq("id", id)
+    .eq("owner_id", ownerId)
+    .maybeSingle();
+
   const { error } = await supabase
     .from("characters")
     .delete()
     .eq("id", id)
     .eq("owner_id", ownerId);
 
-  return !error;
+  if (error) return false;
+
+  if (char) {
+    try {
+      const admin = createSupabaseAdminClient();
+      if (char.avatar_url) {
+        const avatarPath = char.avatar_url.split("/").pop();
+        if (avatarPath) {
+          await admin.storage.from("avatars").remove([`${ownerId}/${avatarPath}`]);
+        }
+      }
+      if (char.cover_url) {
+        const coverPath = char.cover_url.split("/").pop();
+        if (coverPath) {
+          await admin.storage.from("covers").remove([`${ownerId}/${coverPath}`]);
+        }
+      }
+    } catch {
+      // storage cleanup is best-effort
+    }
+  }
+
+  return true;
 }
 
 export async function getCharacterById(id: string): Promise<CharacterWithCard | null> {
