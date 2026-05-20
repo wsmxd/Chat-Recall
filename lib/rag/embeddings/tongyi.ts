@@ -6,8 +6,8 @@ import type {
 import { getServerEnvOrNull } from "@/lib/env";
 
 const BASE_URL = "https://dashscope.aliyuncs.com/compatible-mode/v1";
-const DEFAULT_MODEL = "tongyi-embedding-vision-flash-2026-03-06";
-const DEFAULT_DIMENSIONS = 768;
+const DEFAULT_MODEL = "text-embedding-v4";
+const DEFAULT_DIMENSIONS = 1024;
 
 export function createTongyiEmbeddingProvider(): EmbeddingProvider {
   const env = getServerEnvOrNull();
