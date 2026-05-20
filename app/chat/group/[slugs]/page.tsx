@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getPublicCharacterBySlug } from "@/lib/characters/queries";
+import { getCharacterBySlug } from "@/lib/characters/queries";
+import { getSession } from "@/lib/auth/server";
 import { ChatRoom } from "@/components/chat-room";
 
 type GroupChatPageProps = {
@@ -11,13 +12,14 @@ type GroupChatPageProps = {
 export default async function GroupChatRoomPage({ params, searchParams }: GroupChatPageProps) {
   const { slugs } = await params;
   const sp = await searchParams;
+  const { user } = await getSession();
   const slugList = slugs.split(",").filter(Boolean);
 
   if (slugList.length === 0) {
     notFound();
   }
 
-  const characters = (await Promise.all(slugList.map((s) => getPublicCharacterBySlug(s))))
+  const characters = (await Promise.all(slugList.map((s) => getCharacterBySlug(s, user?.id))))
     .filter((c) => c !== null);
 
   if (characters.length !== slugList.length) {
