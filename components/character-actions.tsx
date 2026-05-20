@@ -2,11 +2,13 @@
 
 import { useEffect } from "react";
 import { useAuth } from "@/components/auth-provider";
+import { useConfirm } from "@/components/confirm-provider";
 import { useRouter } from "next/navigation";
 
 export function CharacterActions() {
   const { user } = useAuth();
   const router = useRouter();
+  const { alert: showAlert } = useConfirm();
 
   useEffect(() => {
     const handleFork = async (e: MouseEvent) => {
@@ -34,13 +36,13 @@ export function CharacterActions() {
         router.push(`/characters/${data.character.slug}`);
       } else {
         const error = await response.json();
-        alert(error.error ?? "Failed to fork character");
+        await showAlert(error.error ?? "Failed to fork character", "Error");
       }
     };
 
     document.addEventListener("click", handleFork);
     return () => document.removeEventListener("click", handleFork);
-  }, [user, router]);
+  }, [user, router, showAlert]);
 
   return null;
 }

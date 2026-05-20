@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@/components/auth-provider";
+import { useConfirm } from "@/components/confirm-provider";
 import { LoreUploader } from "@/components/lore-uploader";
 
 interface LorePack {
@@ -23,6 +24,7 @@ export function LorePackList() {
   const [creating, setCreating] = useState(false);
   const [uploadingFor, setUploadingFor] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
+  const { confirm } = useConfirm();
 
   const refresh = async () => {
     if (!user) return;
@@ -34,7 +36,7 @@ export function LorePackList() {
   };
 
   const handleDelete = async (id: string, name: string) => {
-    if (!confirm(`Delete lore pack "${name}" and all its documents? This cannot be undone.`)) return;
+    if (!await confirm(`Delete lore pack "${name}" and all its documents? This cannot be undone.`)) return;
     setDeleting(id);
     await fetch(`/api/lore-packs/${id}`, { method: "DELETE" });
     await refresh();

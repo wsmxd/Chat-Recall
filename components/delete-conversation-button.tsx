@@ -2,13 +2,15 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useConfirm } from "@/components/confirm-provider";
 
 export function DeleteConversationButton({ id }: { id: string }) {
   const router = useRouter();
   const [deleting, setDeleting] = useState(false);
+  const { confirm } = useConfirm();
 
   const handleDelete = async () => {
-    if (!confirm("Delete this conversation and all its messages?")) return;
+    if (!await confirm("Delete this conversation and all its messages?")) return;
     setDeleting(true);
     const response = await fetch(`/api/conversations/${id}`, { method: "DELETE" });
     if (response.ok) {
