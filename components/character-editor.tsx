@@ -648,6 +648,51 @@ export function CharacterEditor({ mode, initialData }: CharacterEditorProps) {
       </div>
 
       <div className="editor-section card">
+        <h2>Knowledge</h2>
+        <label className="editor-label">
+          Default Lore Pack IDs (comma-separated UUIDs)
+          <input
+            className="editor-input"
+            value={formData.knowledge.defaultLorePackIds.join(", ")}
+            onChange={(e) => {
+              const ids = e.target.value
+                .split(",")
+                .map((s) => s.trim())
+                .filter((s) => s.length > 0);
+              updateNestedField("knowledge", "defaultLorePackIds", ids);
+            }}
+            placeholder="00000000-0000-0000-0000-000000000001"
+          />
+        </label>
+        <label className="editor-label">
+          Canon Preference
+          <select
+            className="editor-select"
+            value={formData.knowledge.canonPreference}
+            onChange={(e) => updateNestedField("knowledge", "canonPreference", e.target.value)}
+          >
+            <option value="canon_first">Canon First</option>
+            <option value="fanon_first">Fanon First</option>
+            <option value="ignore_canon">Ignore Canon</option>
+          </select>
+        </label>
+        <label className="editor-label">
+          Spoiler Level
+          <select
+            className="editor-select"
+            value={formData.knowledge.spoilerLevel}
+            onChange={(e) => updateNestedField("knowledge", "spoilerLevel", e.target.value)}
+          >
+            <option value="none">None</option>
+            <option value="low">Low</option>
+            <option value="medium">Medium</option>
+            <option value="high">High</option>
+            <option value="user_selected">User Selected</option>
+          </select>
+        </label>
+      </div>
+
+      <div className="editor-section card">
         <h2>Model</h2>
         <label className="editor-label">
           Preferred Profile
