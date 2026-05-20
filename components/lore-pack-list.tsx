@@ -77,7 +77,7 @@ export function LorePackList() {
 
   return (
     <div>
-      <div className="editor-new card" style={{ marginBottom: "16px" }}>
+      <div className="card" style={{ marginBottom: "16px" }}>
         <h3>Create Lore Pack</h3>
         <label className="editor-label">
           Name

@@ -51,6 +51,7 @@ export default async function ConversationPage({ params }: ConversationPageProps
         <nav className="nav-list">
           <Link href="/">Overview</Link>
           <Link href="/characters">Characters</Link>
+          <Link href="/chat/group">Group Chat</Link>
           <Link href="/knowledge">Knowledge</Link>
           <Link href="/settings">Settings</Link>
           <Link href="/conversations">Conversations</Link>

@@ -55,6 +55,7 @@ export default async function GroupChatRoomPage({ params, searchParams }: GroupC
           <Link href="/">Overview</Link>
           <Link href="/characters">Characters</Link>
           <Link href="/chat/group">Group Chat</Link>
+          <Link href="/conversations">Conversations</Link>
           <Link href="/knowledge">Knowledge</Link>
           <Link href="/settings">Settings</Link>
         </nav>

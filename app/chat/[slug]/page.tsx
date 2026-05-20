@@ -37,6 +37,8 @@ export default async function ChatPage({ params }: ChatPageProps) {
         <nav className="nav-list">
           <Link href="/">Overview</Link>
           <Link href="/characters">Characters</Link>
+          <Link href="/chat/group">Group Chat</Link>
+          <Link href="/conversations">Conversations</Link>
           <Link href="/knowledge">Knowledge</Link>
           <Link href="/settings">Settings</Link>
         </nav>
