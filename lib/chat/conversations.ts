@@ -49,7 +49,10 @@ export async function createConversation(params: {
   themeId?: string;
 }): Promise<string | null> {
   const supabase = await createSupabaseServerClient();
-  if (!supabase) return null;
+  if (!supabase) {
+    console.error("createConversation: supabase client is null");
+    return null;
+  }
 
   const { data, error } = await supabase
     .from("conversations")
@@ -70,7 +73,14 @@ export async function createConversation(params: {
     .select("id")
     .single();
 
-  if (error) return null;
+  if (error) {
+    console.error("createConversation insert error:", error);
+    return null;
+  }
+  if (!data) {
+    console.error("createConversation: no data returned");
+    return null;
+  }
   return data.id;
 }
 
