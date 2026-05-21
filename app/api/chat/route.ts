@@ -130,7 +130,8 @@ export async function POST(request: Request) {
           characterNames: allCharacters.map((c) => c.name),
           mode,
           sceneParams,
-          title: character.name
+          title: character.name,
+          themeId: character.card.theme?.defaultThemeId ?? undefined
         });
         if (created) activeConversationId = created;
       }

@@ -46,6 +46,7 @@ export async function createConversation(params: {
   mode?: ChatMode;
   sceneParams?: ConversationSettings["sceneParams"];
   title?: string;
+  themeId?: string;
 }): Promise<string | null> {
   const supabase = await createSupabaseServerClient();
   if (!supabase) return null;
@@ -63,7 +64,8 @@ export async function createConversation(params: {
         characterNames: params.characterNames,
         sceneParams: params.sceneParams
       } as Json,
-      mode: toDbMode(params.mode)
+      mode: toDbMode(params.mode),
+      active_theme_id: params.themeId ?? null
     })
     .select("id")
     .single();
@@ -210,6 +212,7 @@ export async function getConversation(conversationId: string, userId: string) {
     characterId: data.character_ids[0] ?? null,
     mode: fromDbMode(data.mode),
     sceneParams: settings?.sceneParams,
+    activeThemeId: data.active_theme_id as string | null,
     createdAt: data.created_at,
     updatedAt: data.updated_at
   };

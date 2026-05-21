@@ -6,6 +6,7 @@ import { getCharacterBySlug } from "@/lib/characters/queries";
 import { ChatRoom } from "@/components/chat-room";
 import { AuthStatus } from "@/components/auth-status";
 import { ThemeStyle } from "@/components/theme-style";
+import { resolveEffectiveTheme } from "@/lib/themes/resolve-effective";
 import { ErrorBoundary } from "@/components/error-boundary";
 import { defaultCharacters } from "@/config/default-characters";
 
@@ -38,9 +39,18 @@ export default async function ConversationPage({ params }: ConversationPageProps
   const themeId = character.card.theme?.defaultThemeId;
   const variantName = character.card.theme?.moodVariants?.[0];
 
+  const effectiveTheme = await resolveEffectiveTheme({
+    conversationThemeId: conversation.activeThemeId,
+    characterThemeId: themeId,
+    characterVariant: variantName,
+    userId: user.id
+  });
+
   return (
     <div className="app-shell">
-      {themeId && <ThemeStyle themeSlug={themeId} variantName={variantName} />}
+      {effectiveTheme.themeSlug && (
+            <ThemeStyle themeSlug={effectiveTheme.themeSlug} variantName={effectiveTheme.variantName} />
+          )}
       <aside className="sidebar" aria-label="Primary navigation">
         <Link className="brand" href="/">
           <span className="brand-mark">CR</span>
