@@ -12,20 +12,30 @@ function tokensToCssVariables(tokens: ThemeTokens): Record<string, string> {
   const vars: Record<string, string> = {};
 
   if (tokens.color) {
+    const colorMap: Record<string, string> = {
+      background: "--background",
+      surface: "--surface",
+      surfaceAlt: "--surface-raised",
+      text: "--text",
+      muted: "--muted",
+      accent: "--accent",
+      border: "--border"
+    };
     for (const [key, value] of Object.entries(tokens.color)) {
-      if (value) vars[`--theme-color-${key}`] = value;
+      const varName = colorMap[key] ?? `--theme-color-${key}`;
+      if (value) vars[varName] = value;
     }
   }
 
   if (tokens.radius) {
     for (const [key, value] of Object.entries(tokens.radius)) {
-      if (value) vars[`--theme-radius-${key}`] = value;
+      if (value) vars[`--radius-${key}`] = value;
     }
   }
 
   if (tokens.typography) {
     for (const [key, value] of Object.entries(tokens.typography)) {
-      if (value) vars[`--theme-font-${key}`] = value;
+      if (value) vars[`--font-${key}`] = value;
     }
   }
 

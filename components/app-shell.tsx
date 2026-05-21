@@ -32,11 +32,6 @@ export function AppShell({ children }: { children: ReactNode }) {
               {item.label}
             </Link>
           ))}
-          {user && (
-            <Link href="/conversations">
-              Conversations
-            </Link>
-          )}
         </nav>
         <div className="nav-footer">
           {user ? (

@@ -227,6 +227,10 @@ on public.themes for update
 using (auth.uid() = owner_id)
 with check (auth.uid() = owner_id);
 
+create policy "theme owners can delete"
+on public.themes for delete
+using (auth.uid() = owner_id);
+
 create policy "public lore packs are readable"
 on public.lore_packs for select
 using (visibility in ('public', 'official') or auth.uid() = owner_id);

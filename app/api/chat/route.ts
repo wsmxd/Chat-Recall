@@ -254,14 +254,15 @@ export async function POST(request: Request) {
             } else if (event.type === "done") {
               // Save assistant message if authenticated
               let assistantMsgId: string | null = null;
+              let resolvedCharacterId: string | null = null;
               if (userId && activeConversationId && assistantContent) {
+                resolvedCharacterId = await getSupabaseCharacterIdBySlug(characterSlug);
                 const supabase2 = await createSupabaseServerClient();
                 if (supabase2) {
-                  const characterId = await getSupabaseCharacterIdBySlug(characterSlug);
                   assistantMsgId = await saveMessage({
                     conversationId: activeConversationId,
                     role: "assistant",
-                    characterId,
+                    characterId: resolvedCharacterId,
                     content: assistantContent,
                     metadata: citations.length > 0 ? { citations } as unknown as import("@/types/database.types").Json : undefined,
                     tokenCount: event.response?.usage?.totalTokens
@@ -289,6 +290,7 @@ export async function POST(request: Request) {
                   ...messages,
                   { id: "latest-assistant", role: "assistant" as const, content: assistantContent, createdAt: new Date().toISOString() }
                 ];
+                const memoryCharacterId = resolvedCharacterId;
                 import("@/lib/memories/extractor").then(({ extractMemoryCandidates }) => {
                   extractMemoryCandidates({
                     characterName: character.name,
@@ -305,6 +307,7 @@ export async function POST(request: Request) {
                               createMemory({
                                 userId,
                                 conversationId: activeConversationId!,
+                                characterId: memoryCharacterId ?? undefined,
                                 type: c.type,
                                 content: c.content,
                                 confidence: c.confidence,

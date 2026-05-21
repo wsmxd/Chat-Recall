@@ -29,3 +29,7 @@ using (
       and lp.owner_id = auth.uid()
   )
 );
+
+create policy "theme owners can delete"
+on public.themes for delete
+using (auth.uid() = owner_id);
