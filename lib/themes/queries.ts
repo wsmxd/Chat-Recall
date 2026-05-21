@@ -78,6 +78,32 @@ export async function getThemeBySlug(slug: string): Promise<ThemeSummary | null>
   }
 }
 
+export async function getThemeById(id: string): Promise<ThemeSummary | null> {
+  try {
+    const supabase = await createSupabaseServerClient();
+    if (!supabase) return null;
+
+    const { data, error } = await supabase
+      .from("themes")
+      .select("*")
+      .eq("id", id)
+      .maybeSingle();
+
+    if (error || !data) return null;
+
+    const pack = parseThemePack(data.definition);
+    return {
+      id: data.id,
+      slug: data.slug,
+      name: data.name,
+      visibility: data.visibility,
+      pack
+    };
+  } catch {
+    return null;
+  }
+}
+
 export async function seedDefaultTheme(): Promise<string | null> {
   try {
     const admin = createSupabaseAdminClient();

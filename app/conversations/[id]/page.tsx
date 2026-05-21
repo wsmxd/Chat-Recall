@@ -36,10 +36,11 @@ export default async function ConversationPage({ params }: ConversationPageProps
   ).filter((c): c is NonNullable<typeof c> => c !== null);
 
   const themeId = character.card.theme?.defaultThemeId;
+  const variantName = character.card.theme?.moodVariants?.[0];
 
   return (
     <div className="app-shell">
-      {themeId && <ThemeStyle themeSlug={themeId} />}
+      {themeId && <ThemeStyle themeSlug={themeId} variantName={variantName} />}
       <aside className="sidebar" aria-label="Primary navigation">
         <Link className="brand" href="/">
           <span className="brand-mark">CR</span>

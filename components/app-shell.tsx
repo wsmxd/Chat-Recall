@@ -8,6 +8,7 @@ const navItems = [
   { href: "/", label: "Overview" },
   { href: "/characters", label: "Characters" },
   { href: "/chat/group", label: "Group Chat" },
+  { href: "/themes", label: "Themes" },
   { href: "/conversations", label: "Conversations" },
   { href: "/knowledge", label: "Knowledge" },
   { href: "/settings", label: "Settings" }
