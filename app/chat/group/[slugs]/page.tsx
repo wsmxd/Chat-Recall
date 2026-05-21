@@ -67,6 +67,7 @@ export default async function GroupChatRoomPage({ params, searchParams }: GroupC
           mode={mode}
           sceneParams={sceneParams}
           characterName={characterName}
+          moodVariants={primaryCharacter.card.theme?.moodVariants}
         />
       </div>
     </div>

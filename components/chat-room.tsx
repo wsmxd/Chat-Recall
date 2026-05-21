@@ -2,6 +2,7 @@
 
 import { useRef, useState, useCallback, useEffect, startTransition } from "react";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import type { CharacterSummary } from "@/lib/characters/schema";
 import { streamChat } from "@/lib/chat/client";
 import { buildGreetingMessage, type ChatMessage } from "@/lib/chat/prompt-builder";
@@ -86,7 +87,8 @@ export function ChatRoom({
   groupCharacters,
   mode = "single",
   sceneParams,
-  characterName
+  characterName,
+  moodVariants
 }: {
   character: CharacterSummary;
   initialConversationId?: string;
@@ -95,8 +97,24 @@ export function ChatRoom({
   mode?: "single" | "group" | "scene";
   sceneParams?: { location?: string; mood?: string; time?: string; description?: string };
   characterName?: string;
+  moodVariants?: string[];
 }) {
   const { user } = useAuth();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const activeVariant = searchParams.get("variant") ?? moodVariants?.[0] ?? "";
+  const [spoilerLevel, setSpoilerLevel] = useState<string>("user_selected");
+  const [canonOnly, setCanonOnly] = useState(false);
+
+  const handleVariantChange = useCallback((variant: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (variant) {
+      params.set("variant", variant);
+    } else {
+      params.delete("variant");
+    }
+    router.replace(`?${params.toString()}`, { scroll: false });
+  }, [router, searchParams]);
   const conversationKey = buildConversationKey({ character, groupCharacters, mode, sceneParams });
   const loadedRef = useRef(false);
   const [hydrated, setHydrated] = useState(false);
@@ -176,6 +194,8 @@ export function ChatRoom({
         mode,
         characterSlugs: groupCharacters?.map((c) => c.slug),
         sceneParams,
+        spoilerLevel: spoilerLevel === "user_selected" ? undefined : spoilerLevel,
+        canonLevel: canonOnly ? "canon" : undefined,
         onToken: (token) => {
           assistantMsgRef.current += token;
           setMessages((prev) => {
@@ -242,7 +262,7 @@ export function ChatRoom({
       setStreaming(false);
       inputRef.current?.focus();
     },
-    [input, messages, streaming, character.slug, conversationId, groupCharacters, mode, sceneParams, conversationKey]
+    [input, messages, streaming, character.slug, conversationId, groupCharacters, mode, sceneParams, conversationKey, spoilerLevel, canonOnly]
   );
 
   const handleCancel = useCallback(() => {
@@ -288,9 +308,55 @@ export function ChatRoom({
           </p>
         )}
         {!characterName && character.subtitle && <p>{character.subtitle}</p>}
+        {moodVariants && moodVariants.length > 0 && (
+          <div style={{ display: "flex", gap: "6px", marginTop: "4px", flexWrap: "wrap" }}>
+            {moodVariants.map((v) => (
+              <button
+                key={v}
+                type="button"
+                className={`tag ${activeVariant === v ? "tag-active" : ""}`}
+                style={{
+                  border: "1px solid var(--border)",
+                  background: activeVariant === v ? "var(--accent)" : "transparent",
+                  color: activeVariant === v ? "var(--background)" : "var(--muted)",
+                  cursor: "pointer",
+                  padding: "2px 8px",
+                  borderRadius: "4px",
+                  fontSize: "0.75rem"
+                }}
+                onClick={() => handleVariantChange(activeVariant === v ? "" : v)}
+              >
+                {v}
+              </button>
+            ))}
+          </div>
+        )}
         {user && conversationId && (
           <p className="chat-persisted">Saved — <Link href="/conversations">view all</Link></p>
         )}
+        <div style={{ display: "flex", gap: "8px", marginTop: "4px", alignItems: "center", flexWrap: "wrap" }}>
+          <select
+            className="editor-select"
+            style={{ fontSize: "0.75rem", padding: "2px 6px", width: "auto", border: "1px solid var(--border)", borderRadius: "4px", background: "var(--surface)", color: "var(--muted)" }}
+            value={spoilerLevel}
+            onChange={(e) => setSpoilerLevel(e.target.value)}
+          >
+            <option value="user_selected">No spoiler filter</option>
+            <option value="none">No spoilers</option>
+            <option value="low">Low spoilers</option>
+            <option value="medium">Medium spoilers</option>
+            <option value="high">All spoilers</option>
+          </select>
+          <label style={{ fontSize: "0.75rem", color: "var(--muted)", display: "flex", alignItems: "center", gap: "4px" }}>
+            <input
+              type="checkbox"
+              checked={canonOnly}
+              onChange={(e) => setCanonOnly(e.target.checked)}
+              style={{ accentColor: "var(--accent)" }}
+            />
+            Canon only
+          </label>
+        </div>
       </header>
 
       <div className="chat-messages" role="log" aria-live="polite">

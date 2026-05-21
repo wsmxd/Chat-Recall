@@ -31,7 +31,9 @@ const chatRequestSchema = z.object({
     mood: z.string().optional(),
     time: z.string().optional(),
     description: z.string().optional()
-  }).optional()
+  }).optional(),
+  spoilerLevel: z.string().optional(),
+  canonLevel: z.string().optional()
 });
 
 export async function POST(request: Request) {
@@ -53,7 +55,7 @@ export async function POST(request: Request) {
       });
     }
 
-    const { characterSlug, conversationId, messages, model, mode, characterSlugs, sceneParams } = parsed.data;
+    const { characterSlug, conversationId, messages, model, mode, characterSlugs, sceneParams, spoilerLevel, canonLevel } = parsed.data;
     const requestedSlugs = Array.from(new Set(characterSlugs?.length ? characterSlugs : [characterSlug]));
 
     if ((mode === "group" || mode === "scene") && !requestedSlugs.includes(characterSlug)) {
@@ -160,8 +162,8 @@ export async function POST(request: Request) {
           loreContext = await retrieveRelevantChunks({
             query: latestUserMsg.content,
             lorePackIds: defaultLorePackIds,
-            spoilerLevel: character.card.knowledge?.spoilerLevel === "user_selected" ? undefined : character.card.knowledge?.spoilerLevel,
-            canonLevel: character.card.knowledge?.canonPreference === "canon_first" ? "canon" : undefined
+            spoilerLevel: spoilerLevel ?? (character.card.knowledge?.spoilerLevel === "user_selected" ? undefined : character.card.knowledge?.spoilerLevel),
+            canonLevel: canonLevel ?? (character.card.knowledge?.canonPreference === "canon_first" ? "canon" : undefined)
           });
         } catch {
           // RAG is best-effort, don't fail chat on retrieval errors

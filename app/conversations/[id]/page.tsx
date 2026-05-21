@@ -79,6 +79,7 @@ export default async function ConversationPage({ params }: ConversationPageProps
             mode={conversation.mode}
             sceneParams={conversation.sceneParams}
             characterName={conversation.mode !== "single" ? conversation.characterNames.join(", ") : undefined}
+            moodVariants={character.card.theme?.moodVariants}
           />
         </ErrorBoundary>
       </div>

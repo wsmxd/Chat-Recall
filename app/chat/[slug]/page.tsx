@@ -55,7 +55,7 @@ export default async function ChatPage({ params }: ChatPageProps) {
       </aside>
       <div className="app-content">
         <ErrorBoundary>
-          <ChatRoom character={character} />
+          <ChatRoom character={character} moodVariants={character.card.theme?.moodVariants} />
         </ErrorBoundary>
       </div>
     </div>

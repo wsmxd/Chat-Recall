@@ -23,6 +23,8 @@ export interface ChatStreamOptions {
   mode?: "single" | "group" | "scene";
   characterSlugs?: string[];
   sceneParams?: { location?: string; mood?: string; time?: string; description?: string };
+  spoilerLevel?: string;
+  canonLevel?: string;
   onToken: (token: string) => void;
   onReasoning?: (token: string) => void;
   onError: (error: string) => void;
@@ -37,7 +39,7 @@ export async function streamChat(options: ChatStreamOptions): Promise<void> {
     const response = await fetch("/api/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ characterSlug, messages, conversationId, model, mode, characterSlugs, sceneParams }),
+      body: JSON.stringify({ characterSlug, messages, conversationId, model, mode, characterSlugs, sceneParams, spoilerLevel: options.spoilerLevel, canonLevel: options.canonLevel }),
       signal
     });
 
