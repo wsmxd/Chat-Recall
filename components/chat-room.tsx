@@ -331,8 +331,14 @@ export function ChatRoom({
             ))}
           </div>
         )}
-        {user && conversationId && (
-          <p className="chat-persisted">Saved — <Link href="/conversations">view all</Link></p>
+        {user ? (
+          conversationId && (
+            <p className="chat-persisted">Saved — <Link href="/conversations">view all</Link></p>
+          )
+        ) : (
+          <p style={{ color: "var(--muted)", fontSize: "0.8rem" }}>
+            <Link href="/auth/login">Sign in</Link> to save conversations
+          </p>
         )}
         <div style={{ display: "flex", gap: "8px", marginTop: "4px", alignItems: "center", flexWrap: "wrap" }}>
           <select

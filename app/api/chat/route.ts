@@ -115,7 +115,10 @@ export async function POST(request: Request) {
 
     // Save user message if authenticated
     if (userId) {
-      await ensureProfile(userId, supabase ?? undefined);
+      const profile = await ensureProfile(userId, supabase ?? undefined);
+      if (!profile) {
+        console.error("ensureProfile failed for user", userId);
+      }
 
       const characterIds = (await Promise.all(requestedSlugs.map((slug) => getSupabaseCharacterIdBySlug(slug))))
         .filter((id): id is string => Boolean(id));
@@ -135,7 +138,11 @@ export async function POST(request: Request) {
           title: character.name,
           themeId: character.card.theme?.defaultThemeId ?? undefined
         });
-        if (created) activeConversationId = created;
+        if (created) {
+          activeConversationId = created;
+        } else {
+          console.error("createConversation failed for user", userId, "character", character.slug);
+        }
       }
 
       if (activeConversationId) {
