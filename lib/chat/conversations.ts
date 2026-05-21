@@ -21,6 +21,7 @@ type ConversationSettings = {
   characterSlugs?: string[];
   characterNames?: string[];
   sceneParams?: { location?: string; mood?: string; time?: string; description?: string };
+  themeSlug?: string;
 };
 
 function toDbMode(mode?: ChatMode) {
@@ -46,7 +47,7 @@ export async function createConversation(params: {
   mode?: ChatMode;
   sceneParams?: ConversationSettings["sceneParams"];
   title?: string;
-  themeId?: string;
+  themeSlug?: string;
 }): Promise<string | null> {
   const supabase = await createSupabaseServerClient();
   if (!supabase) {
@@ -65,10 +66,10 @@ export async function createConversation(params: {
         characterName: params.characterName,
         characterSlugs: params.characterSlugs,
         characterNames: params.characterNames,
-        sceneParams: params.sceneParams
+        sceneParams: params.sceneParams,
+        themeSlug: params.themeSlug
       } as Json,
-      mode: toDbMode(params.mode),
-      active_theme_id: params.themeId ?? null
+      mode: toDbMode(params.mode)
     })
     .select("id")
     .single();
@@ -222,7 +223,7 @@ export async function getConversation(conversationId: string, userId: string) {
     characterId: data.character_ids[0] ?? null,
     mode: fromDbMode(data.mode),
     sceneParams: settings?.sceneParams,
-    activeThemeId: data.active_theme_id as string | null,
+    activeThemeId: settings?.themeSlug ?? null,
     createdAt: data.created_at,
     updatedAt: data.updated_at
   };

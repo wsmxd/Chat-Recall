@@ -136,7 +136,7 @@ export async function POST(request: Request) {
           mode,
           sceneParams,
           title: character.name,
-          themeId: character.card.theme?.defaultThemeId ?? undefined
+          themeSlug: character.card.theme?.defaultThemeId ?? undefined
         });
         if (created) {
           activeConversationId = created;
