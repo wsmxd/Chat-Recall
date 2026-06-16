@@ -1,4 +1,5 @@
 import { createDeepSeekProvider } from "@/lib/llm/providers/deepseek";
+import { getDefaultModelForProvider } from "@/lib/llm/catalog";
 import type { LLMMessage } from "@/lib/llm/types";
 
 export interface ExtractionCandidate {
@@ -51,7 +52,7 @@ Extract memories from this roleplay conversation:\n\n${JSON.stringify(params.con
 
   try {
     const response = await provider.generate({
-      model: "deepseek-chat",
+      model: getDefaultModelForProvider("deepseek"),
       messages: extractionPrompt,
       temperature: 0.3
     });

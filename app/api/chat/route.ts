@@ -3,6 +3,7 @@ import { buildChatPrompt, buildGroupChatPrompt, buildSceneDirectorPrompt } from 
 import type { LoreChunk } from "@/lib/rag/types";
 import { createConversation, saveMessage } from "@/lib/chat/conversations";
 import { createProvider } from "@/lib/llm/factory";
+import { getDefaultModelForProvider } from "@/lib/llm/catalog";
 import { retrieveRelevantChunks } from "@/lib/rag/retrievers/vector-retriever";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { ensureProfile } from "@/lib/auth/server";
@@ -221,8 +222,8 @@ export async function POST(request: Request) {
 
     // Resolve provider and model
     const env = getServerEnvOrNull();
-    let resolvedModel = model ?? env?.DEFAULT_LLM_MODEL ?? "deepseek-chat";
     let providerId = env?.DEFAULT_LLM_PROVIDER ?? "deepseek";
+    let resolvedModel = model ?? env?.DEFAULT_LLM_MODEL ?? getDefaultModelForProvider(providerId);
     if (!model && userId) {
       const userConfig = supabase ? await getUserDefaultProvider(supabase, userId) : null;
       if (userConfig) {

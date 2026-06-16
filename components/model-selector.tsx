@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@/components/auth-provider";
-import { providerModels, providerNames } from "@/lib/llm/catalog";
+import { providerModels, providerNames, getDefaultModelForProvider } from "@/lib/llm/catalog";
 
 export function ModelSelector() {
   const { user, loading: authLoading } = useAuth();
@@ -115,7 +115,7 @@ export function ModelSelector() {
         Model
         <select
           className="editor-select"
-          value={model ?? "deepseek-chat"}
+          value={model ?? getDefaultModelForProvider(provider ?? "deepseek")}
           onChange={(e) => setModel(e.target.value)}
         >
           {(providerModels[provider ?? "deepseek"] ?? []).map((m) => (
