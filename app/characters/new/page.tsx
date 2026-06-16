@@ -12,7 +12,7 @@ export default async function NewCharacterPage() {
       <main className="page">
         <header className="page-header">
           <h1>Create Character</h1>
-          <p>Define a new character card. Fill in the persona, roleplay settings, and metadata.</p>
+          <p>Define the character identity, voice, and opening scene. Advanced settings can be adjusted later.</p>
         </header>
         <CharacterEditor mode="create" />
       </main>

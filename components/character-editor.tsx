@@ -220,6 +220,7 @@ export function CharacterEditor({ mode, initialData }: CharacterEditorProps) {
   const [avatarUrl, setAvatarUrl] = useState(initialData?.avatarUrl ?? "");
   const [coverUrl, setCoverUrl] = useState(initialData?.coverUrl ?? "");
   const [uploading, setUploading] = useState<"avatars" | "covers" | null>(null);
+  const showAdvancedConfig = mode === "edit";
 
   const updateField = useCallback(<K extends keyof FormData>(key: K, value: FormData[K]) => {
     setFormData((prev) => ({ ...prev, [key]: value }));
@@ -505,19 +506,6 @@ export function CharacterEditor({ mode, initialData }: CharacterEditorProps) {
           />
         </label>
         <label className="editor-label">
-          Visibility
-          <select
-            className="editor-select"
-            value={formData.visibility}
-            onChange={(e) => updateField("visibility", e.target.value as FormData["visibility"])}
-          >
-            <option value="private">Private</option>
-            <option value="unlisted">Unlisted</option>
-            <option value="public">Public</option>
-            <option value="official">Official</option>
-          </select>
-        </label>
-        <label className="editor-label">
           Avatar
           <input
             className="editor-input"
@@ -627,199 +615,205 @@ export function CharacterEditor({ mode, initialData }: CharacterEditorProps) {
             placeholder="immersive, concise, in-character"
           />
         </label>
-        <label className="editor-label">
-          Allowed Modes
-          <div className="editor-checkbox-group">
-            {(["chat", "scene", "narration", "qa"] as const).map((mode) => (
-              <label key={mode} className="editor-checkbox">
-                <input
-                  type="checkbox"
-                  checked={formData.roleplay.allowedModes.includes(mode)}
-                  onChange={(e) => {
-                    const modes = e.target.checked
-                      ? [...formData.roleplay.allowedModes, mode]
-                      : formData.roleplay.allowedModes.filter((m) => m !== mode);
-                    updateNestedField("roleplay", "allowedModes", modes);
-                  }}
-                />
-                {mode}
-              </label>
-            ))}
+        {showAdvancedConfig && (
+          <label className="editor-label">
+            Allowed Modes
+            <div className="editor-checkbox-group">
+              {(["chat", "scene", "narration", "qa"] as const).map((mode) => (
+                <label key={mode} className="editor-checkbox">
+                  <input
+                    type="checkbox"
+                    checked={formData.roleplay.allowedModes.includes(mode)}
+                    onChange={(e) => {
+                      const modes = e.target.checked
+                        ? [...formData.roleplay.allowedModes, mode]
+                        : formData.roleplay.allowedModes.filter((m) => m !== mode);
+                      updateNestedField("roleplay", "allowedModes", modes);
+                    }}
+                  />
+                  {mode}
+                </label>
+              ))}
+            </div>
+          </label>
+        )}
+      </div>
+
+      {showAdvancedConfig && (
+        <>
+          <div className="editor-section card">
+            <h2>Knowledge</h2>
+            <label className="editor-label">
+              Default Lore Pack IDs (comma-separated UUIDs)
+              <input
+                className="editor-input"
+                value={formData.knowledge.defaultLorePackIds.join(", ")}
+                onChange={(e) => {
+                  const ids = e.target.value
+                    .split(",")
+                    .map((s) => s.trim())
+                    .filter((s) => s.length > 0);
+                  updateNestedField("knowledge", "defaultLorePackIds", ids);
+                }}
+                placeholder="00000000-0000-0000-0000-000000000001"
+              />
+            </label>
+            <label className="editor-label">
+              Canon Preference
+              <select
+                className="editor-select"
+                value={formData.knowledge.canonPreference}
+                onChange={(e) => updateNestedField("knowledge", "canonPreference", e.target.value)}
+              >
+                <option value="canon_first">Canon First</option>
+                <option value="fanon_first">Fanon First</option>
+                <option value="ignore_canon">Ignore Canon</option>
+              </select>
+            </label>
+            <label className="editor-label">
+              Spoiler Level
+              <select
+                className="editor-select"
+                value={formData.knowledge.spoilerLevel}
+                onChange={(e) => updateNestedField("knowledge", "spoilerLevel", e.target.value)}
+              >
+                <option value="none">None</option>
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+                <option value="user_selected">User Selected</option>
+              </select>
+            </label>
           </div>
-        </label>
-      </div>
 
-      <div className="editor-section card">
-        <h2>Knowledge</h2>
-        <label className="editor-label">
-          Default Lore Pack IDs (comma-separated UUIDs)
-          <input
-            className="editor-input"
-            value={formData.knowledge.defaultLorePackIds.join(", ")}
-            onChange={(e) => {
-              const ids = e.target.value
-                .split(",")
-                .map((s) => s.trim())
-                .filter((s) => s.length > 0);
-              updateNestedField("knowledge", "defaultLorePackIds", ids);
-            }}
-            placeholder="00000000-0000-0000-0000-000000000001"
-          />
-        </label>
-        <label className="editor-label">
-          Canon Preference
-          <select
-            className="editor-select"
-            value={formData.knowledge.canonPreference}
-            onChange={(e) => updateNestedField("knowledge", "canonPreference", e.target.value)}
-          >
-            <option value="canon_first">Canon First</option>
-            <option value="fanon_first">Fanon First</option>
-            <option value="ignore_canon">Ignore Canon</option>
-          </select>
-        </label>
-        <label className="editor-label">
-          Spoiler Level
-          <select
-            className="editor-select"
-            value={formData.knowledge.spoilerLevel}
-            onChange={(e) => updateNestedField("knowledge", "spoilerLevel", e.target.value)}
-          >
-            <option value="none">None</option>
-            <option value="low">Low</option>
-            <option value="medium">Medium</option>
-            <option value="high">High</option>
-            <option value="user_selected">User Selected</option>
-          </select>
-        </label>
-      </div>
+          <div className="editor-section card">
+            <h2>Model</h2>
+            <label className="editor-label">
+              Preferred Profile
+              <select
+                className="editor-select"
+                value={formData.model.preferredProfile}
+                onChange={(e) => updateNestedField("model", "preferredProfile", e.target.value)}
+              >
+                <option value="roleplay-balanced">Roleplay Balanced</option>
+                <option value="roleplay-creative">Roleplay Creative</option>
+                <option value="roleplay-precise">Roleplay Precise</option>
+              </select>
+            </label>
+            <label className="editor-label">
+              Temperature ({formData.model.temperature.toFixed(1)})
+              <input
+                className="editor-range"
+                type="range"
+                min={0}
+                max={2}
+                step={0.1}
+                value={formData.model.temperature}
+                onChange={(e) => updateNestedField("model", "temperature", parseFloat(e.target.value))}
+              />
+            </label>
+          </div>
 
-      <div className="editor-section card">
-        <h2>Model</h2>
-        <label className="editor-label">
-          Preferred Profile
-          <select
-            className="editor-select"
-            value={formData.model.preferredProfile}
-            onChange={(e) => updateNestedField("model", "preferredProfile", e.target.value)}
-          >
-            <option value="roleplay-balanced">Roleplay Balanced</option>
-            <option value="roleplay-creative">Roleplay Creative</option>
-            <option value="roleplay-precise">Roleplay Precise</option>
-          </select>
-        </label>
-        <label className="editor-label">
-          Temperature ({formData.model.temperature.toFixed(1)})
-          <input
-            className="editor-range"
-            type="range"
-            min={0}
-            max={2}
-            step={0.1}
-            value={formData.model.temperature}
-            onChange={(e) => updateNestedField("model", "temperature", parseFloat(e.target.value))}
-          />
-        </label>
-      </div>
+          <div className="editor-section card">
+            <h2>Metadata</h2>
+            <label className="editor-label">
+              Source
+              <select
+                className="editor-select"
+                value={formData.metadata.source}
+                onChange={(e) => updateNestedField("metadata", "source", e.target.value)}
+              >
+                <option value="original">Original</option>
+                <option value="third_party_or_original">Third Party or Original</option>
+                <option value="forked">Forked</option>
+              </select>
+            </label>
+            <label className="editor-label">
+              Source Title
+              <input
+                className="editor-input"
+                value={formData.metadata.sourceTitle}
+                onChange={(e) => updateNestedField("metadata", "sourceTitle", e.target.value)}
+                placeholder="Original source title"
+              />
+            </label>
+            <label className="editor-label">
+              Tags (comma-separated)
+              <input
+                className="editor-input"
+                value={formData.metadata.tags.join(", ")}
+                onChange={(e) => handleTagInput("tags", e.target.value)}
+                placeholder="roleplay, fantasy, adventure"
+              />
+            </label>
+            <label className="editor-label">
+              Language
+              <select
+                className="editor-select"
+                value={formData.metadata.language}
+                onChange={(e) => updateNestedField("metadata", "language", e.target.value)}
+              >
+                <option value="zh-CN">Chinese</option>
+                <option value="en">English</option>
+                <option value="ja">Japanese</option>
+                <option value="ko">Korean</option>
+              </select>
+            </label>
+            <label className="editor-label">
+              License
+              <input
+                className="editor-input"
+                value={formData.metadata.license}
+                onChange={(e) => updateNestedField("metadata", "license", e.target.value)}
+                placeholder="MIT, CC-BY, unknown"
+              />
+            </label>
+            <label className="editor-label">
+              Redistribution
+              <select
+                className="editor-select"
+                value={formData.metadata.redistribution}
+                onChange={(e) => updateNestedField("metadata", "redistribution", e.target.value)}
+              >
+                <option value="instance_only">Instance Only</option>
+                <option value="repository_allowed">Repository Allowed</option>
+                <option value="public_allowed">Public Allowed</option>
+              </select>
+            </label>
+            <label className="editor-label">
+              Attribution
+              <input
+                className="editor-input"
+                value={formData.metadata.attribution}
+                onChange={(e) => updateNestedField("metadata", "attribution", e.target.value)}
+                placeholder="Creator name or credit"
+              />
+            </label>
+          </div>
 
-      <div className="editor-section card">
-        <h2>Metadata</h2>
-        <label className="editor-label">
-          Source
-          <select
-            className="editor-select"
-            value={formData.metadata.source}
-            onChange={(e) => updateNestedField("metadata", "source", e.target.value)}
-          >
-            <option value="original">Original</option>
-            <option value="third_party_or_original">Third Party or Original</option>
-            <option value="forked">Forked</option>
-          </select>
-        </label>
-        <label className="editor-label">
-          Source Title
-          <input
-            className="editor-input"
-            value={formData.metadata.sourceTitle}
-            onChange={(e) => updateNestedField("metadata", "sourceTitle", e.target.value)}
-            placeholder="Original source title"
-          />
-        </label>
-        <label className="editor-label">
-          Tags (comma-separated)
-          <input
-            className="editor-input"
-            value={formData.metadata.tags.join(", ")}
-            onChange={(e) => handleTagInput("tags", e.target.value)}
-            placeholder="roleplay, fantasy, adventure"
-          />
-        </label>
-        <label className="editor-label">
-          Language
-          <select
-            className="editor-select"
-            value={formData.metadata.language}
-            onChange={(e) => updateNestedField("metadata", "language", e.target.value)}
-          >
-            <option value="zh-CN">Chinese</option>
-            <option value="en">English</option>
-            <option value="ja">Japanese</option>
-            <option value="ko">Korean</option>
-          </select>
-        </label>
-        <label className="editor-label">
-          License
-          <input
-            className="editor-input"
-            value={formData.metadata.license}
-            onChange={(e) => updateNestedField("metadata", "license", e.target.value)}
-            placeholder="MIT, CC-BY, unknown"
-          />
-        </label>
-        <label className="editor-label">
-          Redistribution
-          <select
-            className="editor-select"
-            value={formData.metadata.redistribution}
-            onChange={(e) => updateNestedField("metadata", "redistribution", e.target.value)}
-          >
-            <option value="instance_only">Instance Only</option>
-            <option value="repository_allowed">Repository Allowed</option>
-            <option value="public_allowed">Public Allowed</option>
-          </select>
-        </label>
-        <label className="editor-label">
-          Attribution
-          <input
-            className="editor-input"
-            value={formData.metadata.attribution}
-            onChange={(e) => updateNestedField("metadata", "attribution", e.target.value)}
-            placeholder="Creator name or credit"
-          />
-        </label>
-      </div>
-
-      <div className="editor-section card">
-        <h2>Theme</h2>
-        <label className="editor-label">
-          Default Theme ID
-          <input
-            className="editor-input"
-            value={formData.theme.defaultThemeId}
-            onChange={(e) => updateNestedField("theme", "defaultThemeId", e.target.value)}
-            placeholder="moonlit-archive"
-          />
-        </label>
-        <label className="editor-label">
-          Mood Variants (comma-separated)
-          <input
-            className="editor-input"
-            value={formData.theme.moodVariants.join(", ")}
-            onChange={(e) => handleTagInput("moodVariants", e.target.value)}
-            placeholder="calm, mystery, night"
-          />
-        </label>
-      </div>
+          <div className="editor-section card">
+            <h2>Theme</h2>
+            <label className="editor-label">
+              Default Theme ID
+              <input
+                className="editor-input"
+                value={formData.theme.defaultThemeId}
+                onChange={(e) => updateNestedField("theme", "defaultThemeId", e.target.value)}
+                placeholder="moonlit-archive"
+              />
+            </label>
+            <label className="editor-label">
+              Mood Variants (comma-separated)
+              <input
+                className="editor-input"
+                value={formData.theme.moodVariants.join(", ")}
+                onChange={(e) => handleTagInput("moodVariants", e.target.value)}
+                placeholder="calm, mystery, night"
+              />
+            </label>
+          </div>
+        </>
+      )}
 
       <div className="editor-actions">
         <button

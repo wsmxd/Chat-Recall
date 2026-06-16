@@ -2,26 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@/components/auth-provider";
-
-const providerModels: Record<string, string[]> = {
-  deepseek: ["deepseek-v4-flash", "deepseek-v4-pro", "deepseek-chat", "deepseek-reasoner"],
-  openai: ["gpt-4o", "gpt-4o-mini", "gpt-4.1"],
-  anthropic: ["claude-sonnet-4-20250514", "claude-3-5-haiku-20241022"],
-  openrouter: ["openai/gpt-4o", "anthropic/claude-sonnet-4", "google/gemini-2.5-pro", "deepseek/deepseek-chat"],
-  kimi: ["moonshot-v1-128k", "moonshot-v1-32k", "kimi-latest"],
-  qwen: ["qwen3.6-flash", "qwen3.6-pro", "qwen-max", "qwen-plus", "qwen-turbo"],
-  glm: ["glm-4-plus", "glm-4-flash", "glm-4-air"]
-};
-
-const providerNames: Record<string, string> = {
-  deepseek: "DeepSeek",
-  openai: "OpenAI",
-  anthropic: "Anthropic",
-  openrouter: "OpenRouter",
-  kimi: "Kimi (Moonshot)",
-  qwen: "Qwen (Tongyi)",
-  glm: "GLM (Zhipu)"
-};
+import { providerModels, providerNames } from "@/lib/llm/catalog";
 
 export function ModelSelector() {
   const { user, loading: authLoading } = useAuth();
