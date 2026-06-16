@@ -16,12 +16,15 @@ const serverEnvSchema = publicEnvSchema.extend({
   KIMI_API_KEY: z.preprocess((v) => (v === "" ? undefined : v), z.string().min(1).optional()),
   QWEN_API_KEY: z.preprocess((v) => (v === "" ? undefined : v), z.string().min(1).optional()),
   GLM_API_KEY: z.preprocess((v) => (v === "" ? undefined : v), z.string().min(1).optional()),
+  GLM_BASE_URL: z.url().default("https://open.bigmodel.cn/api/paas/v4"),
+  MINIMAX_API_KEY: z.preprocess((v) => (v === "" ? undefined : v), z.string().min(1).optional()),
+  MINIMAX_BASE_URL: z.url().default("https://api.minimax.chat/v1"),
   DEFAULT_LLM_PROVIDER: z.string().default("deepseek"),
   DEFAULT_LLM_MODEL: z.string().default("deepseek-chat"),
   DASHSCOPE_API_KEY: z.preprocess((v) => (v === "" ? undefined : v), z.string().min(1).optional()),
   EMBEDDING_PROVIDER: z.string().default("tongyi"),
-  EMBEDDING_MODEL: z.string().default("tongyi-embedding-vision-flash-2026-03-06"),
-  EMBEDDING_DIMENSIONS: z.string().default("768"),
+  EMBEDDING_MODEL: z.string().default("text-embedding-v4"),
+  EMBEDDING_DIMENSIONS: z.string().default("1024"),
   EMBEDDING_API_KEY: z.preprocess((v) => (v === "" ? undefined : v), z.string().optional()),
   APP_URL: z.url().default("http://localhost:3000")
 });
@@ -73,9 +76,10 @@ export function getEnvironmentStatus() {
     supabaseAnonKey: Boolean(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY),
     supabaseServiceRoleKey: Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY),
     deepseekApiKey: Boolean(process.env.DEEPSEEK_API_KEY),
+    glmApiKey: Boolean(process.env.GLM_API_KEY),
+    minimaxApiKey: Boolean(process.env.MINIMAX_API_KEY),
     dashscopeApiKey: Boolean(process.env.DASHSCOPE_API_KEY),
     embeddingProvider: process.env.EMBEDDING_PROVIDER || "tongyi",
-    embeddingModel: process.env.EMBEDDING_MODEL || "tongyi-embedding-vision-flash-2026-03-06"
+    embeddingModel: process.env.EMBEDDING_MODEL || "text-embedding-v4"
   };
 }
-

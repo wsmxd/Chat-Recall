@@ -20,10 +20,11 @@ function parseSSELine(line: string): Record<string, unknown> | null {
   }
 }
 
-export function createOpenAIProvider(config?: { baseUrl?: string; apiKeyEnv?: string; id?: LLMProvider["id"]; displayName?: string }): LLMProvider {
+export function createOpenAIProvider(config?: { baseUrl?: string; baseUrlEnv?: string; apiKeyEnv?: string; id?: LLMProvider["id"]; displayName?: string }): LLMProvider {
   const id = config?.id ?? "openai";
   const displayName = config?.displayName ?? "OpenAI";
   const customBaseUrl = config?.baseUrl;
+  const baseUrlEnv = config?.baseUrlEnv;
   const keyEnv = config?.apiKeyEnv ?? "OPENAI_API_KEY";
 
   async function generate(options: LLMGenerateOptions): Promise<LLMResponse> {
@@ -31,7 +32,8 @@ export function createOpenAIProvider(config?: { baseUrl?: string; apiKeyEnv?: st
     const apiKey = env ? (env as Record<string, string | undefined>)[keyEnv] : undefined;
     if (!env || !apiKey) throw new Error(`${keyEnv} is not configured.`);
 
-    const baseUrl = customBaseUrl || env.OPENAI_BASE_URL || "https://api.openai.com/v1";
+    const envBaseUrl = baseUrlEnv ? (env as Record<string, string | undefined>)[baseUrlEnv] : env.OPENAI_BASE_URL;
+    const baseUrl = envBaseUrl || customBaseUrl || "https://api.openai.com/v1";
 
     const response = await fetch(`${baseUrl}/chat/completions`, {
       method: "POST",
@@ -71,7 +73,8 @@ export function createOpenAIProvider(config?: { baseUrl?: string; apiKeyEnv?: st
       return;
     }
 
-    const baseUrl = customBaseUrl || env.OPENAI_BASE_URL || "https://api.openai.com/v1";
+    const envBaseUrl = baseUrlEnv ? (env as Record<string, string | undefined>)[baseUrlEnv] : env.OPENAI_BASE_URL;
+    const baseUrl = envBaseUrl || customBaseUrl || "https://api.openai.com/v1";
 
     const response = await fetch(`${baseUrl}/chat/completions`, {
       method: "POST",

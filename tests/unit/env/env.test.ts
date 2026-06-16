@@ -8,6 +8,8 @@ beforeEach(() => {
   delete process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   delete process.env.DEEPSEEK_API_KEY;
   delete process.env.DASHSCOPE_API_KEY;
+  delete process.env.GLM_API_KEY;
+  delete process.env.MINIMAX_API_KEY;
 });
 
 afterEach(() => {
@@ -43,8 +45,10 @@ describe("env validation", () => {
     if (env) {
       expect(env.DEFAULT_LLM_PROVIDER).toBe("deepseek");
       expect(env.DEFAULT_LLM_MODEL).toBe("deepseek-chat");
-      expect(env.EMBEDDING_MODEL).toBe("tongyi-embedding-vision-flash-2026-03-06");
-      expect(env.EMBEDDING_DIMENSIONS).toBe("768");
+      expect(env.GLM_BASE_URL).toBe("https://open.bigmodel.cn/api/paas/v4");
+      expect(env.MINIMAX_BASE_URL).toBe("https://api.minimax.chat/v1");
+      expect(env.EMBEDDING_MODEL).toBe("text-embedding-v4");
+      expect(env.EMBEDDING_DIMENSIONS).toBe("1024");
     }
   });
 
@@ -56,6 +60,7 @@ describe("env validation", () => {
     process.env.OPENROUTER_API_KEY = "";
     process.env.KIMI_API_KEY = "";
     process.env.GLM_API_KEY = "";
+    process.env.MINIMAX_API_KEY = "";
     process.env.QWEN_API_KEY = "qwen-key";
 
     const { getServerEnvOrNull } = await import("@/lib/env");
@@ -63,6 +68,7 @@ describe("env validation", () => {
 
     expect(env).not.toBeNull();
     expect(env?.OPENAI_API_KEY).toBeUndefined();
+    expect(env?.MINIMAX_API_KEY).toBeUndefined();
     expect(env?.QWEN_API_KEY).toBe("qwen-key");
   });
 });

@@ -1,5 +1,6 @@
 import type { LLMProvider } from "@/lib/llm/types";
 import { getServerEnvOrNull } from "@/lib/env";
+import { providerCatalog } from "@/lib/llm/catalog";
 
 export type ProviderFactory = (providerId: string) => LLMProvider;
 
@@ -10,7 +11,8 @@ const providers: Partial<Record<string, () => Promise<LLMProvider>>> = {
   openrouter: () => import("@/lib/llm/providers/openrouter").then((m) => m.createOpenRouterProvider()),
   kimi: () => import("@/lib/llm/providers/openai").then((m) => m.createOpenAIProvider({ id: "kimi", displayName: "Kimi", baseUrl: "https://api.moonshot.cn/v1", apiKeyEnv: "KIMI_API_KEY" })),
   qwen: () => import("@/lib/llm/providers/openai").then((m) => m.createOpenAIProvider({ id: "qwen", displayName: "Qwen", baseUrl: "https://dashscope.aliyuncs.com/compatible-mode/v1", apiKeyEnv: "QWEN_API_KEY" })),
-  glm: () => import("@/lib/llm/providers/openai").then((m) => m.createOpenAIProvider({ id: "glm", displayName: "GLM", baseUrl: "https://open.bigmodel.cn/api/paas/v4", apiKeyEnv: "GLM_API_KEY" }))
+  glm: () => import("@/lib/llm/providers/openai").then((m) => m.createOpenAIProvider({ id: "glm", displayName: "GLM", baseUrl: "https://open.bigmodel.cn/api/paas/v4", baseUrlEnv: "GLM_BASE_URL", apiKeyEnv: "GLM_API_KEY" })),
+  minimax: () => import("@/lib/llm/providers/openai").then((m) => m.createOpenAIProvider({ id: "minimax", displayName: "MiniMax", baseUrl: "https://api.minimax.chat/v1", baseUrlEnv: "MINIMAX_BASE_URL", apiKeyEnv: "MINIMAX_API_KEY" }))
 };
 
 export async function createProvider(providerId: string): Promise<LLMProvider> {
@@ -31,19 +33,15 @@ export function resolveProviderId(userConfigProvider?: string): string {
   if (env.OPENAI_API_KEY) return "openai";
   if (env.ANTHROPIC_API_KEY) return "anthropic";
   if (env.OPENROUTER_API_KEY) return "openrouter";
+  if (env.KIMI_API_KEY) return "kimi";
+  if (env.QWEN_API_KEY) return "qwen";
+  if (env.GLM_API_KEY) return "glm";
+  if (env.MINIMAX_API_KEY) return "minimax";
   if (env.DEEPSEEK_API_KEY) return "deepseek";
 
   return "deepseek";
 }
 
 export function getAvailableProviders(): Array<{ id: string; name: string; models: string[] }> {
-  return [
-    { id: "deepseek", name: "DeepSeek", models: ["deepseek-v4-flash", "deepseek-v4-pro", "deepseek-chat", "deepseek-reasoner"] },
-    { id: "openai", name: "OpenAI", models: ["gpt-4o", "gpt-4o-mini", "gpt-4.1"] },
-    { id: "anthropic", name: "Anthropic", models: ["claude-sonnet-4-20250514", "claude-3-5-haiku-20241022"] },
-    { id: "openrouter", name: "OpenRouter", models: ["openai/gpt-4o", "anthropic/claude-sonnet-4", "google/gemini-2.5-pro", "deepseek/deepseek-chat"] },
-    { id: "kimi", name: "Kimi (Moonshot)", models: ["moonshot-v1-128k", "moonshot-v1-32k", "kimi-latest"] },
-    { id: "qwen", name: "Qwen (Tongyi)", models: ["qwen-max", "qwen-plus", "qwen-turbo"] },
-    { id: "glm", name: "GLM (Zhipu)", models: ["glm-4-plus", "glm-4-flash", "glm-4-air"] }
-  ];
+  return providerCatalog;
 }

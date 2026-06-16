@@ -60,11 +60,17 @@ DEEPSEEK_BASE_URL=https://api.deepseek.com
 DEFAULT_LLM_PROVIDER=deepseek
 DEFAULT_LLM_MODEL=deepseek-chat
 
+# Optional OpenAI-compatible LLMs
+GLM_API_KEY=
+GLM_BASE_URL=https://open.bigmodel.cn/api/paas/v4
+MINIMAX_API_KEY=
+MINIMAX_BASE_URL=https://api.minimax.chat/v1
+
 # Embedding (Tongyi)
 DASHSCOPE_API_KEY=sk-...
 EMBEDDING_PROVIDER=tongyi
-EMBEDDING_MODEL=tongyi-embedding-vision-flash-2026-03-06
-EMBEDDING_DIMENSIONS=768
+EMBEDDING_MODEL=text-embedding-v4
+EMBEDDING_DIMENSIONS=1024
 
 # Application
 APP_URL=https://your-domain.vercel.app

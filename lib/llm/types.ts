@@ -1,4 +1,4 @@
-export type LLMProviderId = "deepseek" | "openai" | "anthropic" | "openrouter" | "kimi" | "qwen" | "glm" | "google" | "local" | "custom-openai";
+export type LLMProviderId = "deepseek" | "openai" | "anthropic" | "openrouter" | "kimi" | "qwen" | "glm" | "minimax" | "google" | "local" | "custom-openai";
 
 export type LLMMessage = {
   role: "system" | "user" | "assistant" | "tool";
