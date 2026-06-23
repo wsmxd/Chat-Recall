@@ -150,6 +150,7 @@ export function ChatRoom({
   const assistantMsgRef = useRef<string>("");
   const reasoningRef = useRef<string>("");
   const [reasoningMsgs, setReasoningMsgs] = useState<Record<string, string>>({});
+  const [citationMsgs, setCitationMsgs] = useState<Record<string, Array<{ chunkId: string; content: string; similarity: number; source: string }>>>({});
 
   useEffect(() => {
     if (hydrated) {
@@ -247,6 +248,9 @@ export function ChatRoom({
             }
             return next;
           });
+          if (result.citations && result.citations.length > 0) {
+            setCitationMsgs((prev) => ({ ...prev, [finalMessageId]: result.citations! }));
+          }
           setMessages((prev) =>
             prev.map((m) =>
               m.id === "streaming"
@@ -379,6 +383,20 @@ export function ChatRoom({
               <details className="chat-reasoning">
                 <summary>Thinking</summary>
                 <div className="chat-reasoning-content">{reasoningMsgs[msg.id]}</div>
+              </details>
+            )}
+            {citationMsgs[msg.id] && (
+              <details className="chat-citations">
+                <summary>Sources ({citationMsgs[msg.id].length})</summary>
+                <div className="chat-citations-list">
+                  {citationMsgs[msg.id].map((c, i) => (
+                    <div key={i} className="chat-citation-item">
+                      <span className="chat-citation-source">{c.source}</span>
+                      <span className="chat-citation-score">{(c.similarity * 100).toFixed(0)}%</span>
+                      <p className="chat-citation-content">{c.content}</p>
+                    </div>
+                  ))}
+                </div>
               </details>
             )}
             <div className="chat-message-content">{msg.content}</div>

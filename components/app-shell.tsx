@@ -11,7 +11,8 @@ const navItems = [
   { href: "/themes", label: "Themes" },
   { href: "/conversations", label: "Conversations" },
   { href: "/knowledge", label: "Knowledge" },
-  { href: "/settings", label: "Settings" }
+  { href: "/settings", label: "Settings" },
+  { href: "/profile", label: "Profile" }
 ];
 
 export function AppShell({ children }: { children: ReactNode }) {

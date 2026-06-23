@@ -13,6 +13,12 @@ export interface ChatStreamEvent {
   conversationId?: string;
   userMessageId?: string;
   assistantMessageId?: string;
+  citations?: Array<{
+    chunkId: string;
+    content: string;
+    similarity: number;
+    source: string;
+  }>;
 }
 
 export interface ChatStreamOptions {
@@ -28,7 +34,7 @@ export interface ChatStreamOptions {
   onToken: (token: string) => void;
   onReasoning?: (token: string) => void;
   onError: (error: string) => void;
-  onDone: (result: { usage?: ChatStreamEvent["usage"]; conversationId?: string; reasoningContent?: string }) => void;
+  onDone: (result: { usage?: ChatStreamEvent["usage"]; conversationId?: string; reasoningContent?: string; citations?: ChatStreamEvent["citations"] }) => void;
   signal?: AbortSignal;
 }
 
@@ -87,7 +93,8 @@ export async function streamChat(options: ChatStreamOptions): Promise<void> {
               onDone({
                 usage: event.usage,
                 conversationId: event.conversationId,
-                reasoningContent: event.reasoningContent
+                reasoningContent: event.reasoningContent,
+                citations: event.citations
               });
             }
           } catch {

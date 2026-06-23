@@ -911,3 +911,47 @@ select {
   justify-content: flex-end;
   gap: 8px;
 }
+
+/* Chat citations */
+.chat-citations {
+  margin-top: 6px;
+  font-size: 0.8rem;
+}
+
+.chat-citations summary {
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 0.75rem;
+}
+
+.chat-citations-list {
+  margin-top: 6px;
+  display: grid;
+  gap: 6px;
+}
+
+.chat-citation-item {
+  border-left: 2px solid var(--accent);
+  padding: 4px 8px;
+  background: var(--surface-raised);
+  border-radius: 0 4px 4px 0;
+}
+
+.chat-citation-source {
+  font-size: 0.7rem;
+  color: var(--accent);
+  text-transform: uppercase;
+}
+
+.chat-citation-score {
+  font-size: 0.7rem;
+  color: var(--muted);
+  float: right;
+}
+
+.chat-citation-content {
+  margin: 2px 0 0;
+  color: var(--muted);
+  font-size: 0.75rem;
+  line-height: 1.4;
+}

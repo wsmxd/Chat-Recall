@@ -6,11 +6,11 @@ import { useAuth } from "@/components/auth-provider";
 import Link from "next/link";
 
 export default function LoginPage() {
-  const { user, signIn, signUp } = useAuth();
+  const { user, signIn, signUp, resetPassword } = useAuth();
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [mode, setMode] = useState<"signin" | "signup">("signin");
+  const [mode, setMode] = useState<"signin" | "signup" | "reset">("signin");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -30,13 +30,22 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const result = mode === "signin" ? await signIn(email, password) : await signUp(email, password);
-      if (result.error) {
-        setError(result.error);
-      } else if (mode === "signup") {
-        setMessage("Check your email for a confirmation link.");
+      if (mode === "reset") {
+        const result = await resetPassword(email);
+        if (result.error) {
+          setError(result.error);
+        } else {
+          setMessage("Password reset link sent. Check your email.");
+        }
       } else {
-        router.push("/");
+        const result = mode === "signin" ? await signIn(email, password) : await signUp(email, password);
+        if (result.error) {
+          setError(result.error);
+        } else if (mode === "signup") {
+          setMessage("Check your email for a confirmation link.");
+        } else {
+          router.push("/");
+        }
       }
     } finally {
       setLoading(false);
@@ -66,6 +75,12 @@ export default function LoginPage() {
           >
             Sign Up
           </button>
+          <button
+            className={`auth-tab ${mode === "reset" ? "active" : ""}`}
+            onClick={() => { setMode("reset"); setError(null); setMessage(null); }}
+          >
+            Reset
+          </button>
         </div>
 
         <form className="auth-form" onSubmit={handleSubmit}>
@@ -80,26 +95,40 @@ export default function LoginPage() {
               autoComplete="email"
             />
           </label>
-          <label className="auth-label">
-            Password
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="auth-input"
-              required
-              minLength={6}
-              autoComplete={mode === "signin" ? "current-password" : "new-password"}
-            />
-          </label>
+          {mode !== "reset" && (
+            <label className="auth-label">
+              Password
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="auth-input"
+                required
+                minLength={6}
+                autoComplete={mode === "signin" ? "current-password" : "new-password"}
+              />
+            </label>
+          )}
 
           {error && <div className="auth-error" role="alert">{error}</div>}
           {message && <div className="auth-message" role="status">{message}</div>}
 
           <button type="submit" className="auth-submit" disabled={loading}>
-            {loading ? "Loading..." : mode === "signin" ? "Sign In" : "Create Account"}
+            {loading ? "Loading..." : mode === "signin" ? "Sign In" : mode === "signup" ? "Create Account" : "Send Reset Link"}
           </button>
         </form>
+
+        {mode === "signin" && (
+          <p className="auth-footer">
+            <button
+              type="button"
+              onClick={() => { setMode("reset"); setError(null); setMessage(null); }}
+              style={{ background: "none", border: "none", color: "var(--muted)", cursor: "pointer", fontSize: "0.85rem" }}
+            >
+              Forgot password?
+            </button>
+          </p>
+        )}
 
         <p className="auth-footer">
           <Link href="/">Back to home</Link>

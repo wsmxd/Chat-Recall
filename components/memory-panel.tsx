@@ -197,7 +197,13 @@ export function MemoryPanel({ conversationId, characterName }: MemoryPanelProps)
             className="button secondary"
             onClick={() => {
               const json = JSON.stringify(memories.map((m) => ({ type: m.type, content: m.content, confidence: m.confidence, pinned: m.pinned })), null, 2);
-              navigator.clipboard.writeText(json);
+              const blob = new Blob([json], { type: "application/json" });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement("a");
+              a.href = url;
+              a.download = "memories.json";
+              a.click();
+              URL.revokeObjectURL(url);
             }}
             type="button"
           >
